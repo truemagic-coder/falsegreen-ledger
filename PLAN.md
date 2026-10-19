@@ -232,3 +232,22 @@ Failure budget is generous: 8 attempts total, all inside one price.
 
 - The signed report returns **`accepted`**: `build` + `tests` evidence on the frozen source, per-criterion command evidence, frozen boundary digests, environment fingerprint, valid Ed25519 signature (locally verified), full Security & Standards section (5 evidence classes + 5 posture rows).
 - The repo contains the committed workspace, contract, plan reference, and the saved report (JSON) for the record.
+## 10. FalseGreen trouble log
+
+Running record of the friction met with the FalseGreen tooling in THIS project — the record is the point (D-RT scanner behavior, MCP surface ergonomics), so future projects can file the same bugs.
+
+| # | When | Trouble | Workaround | Status |
+|---|---|---|---|---|
+| T1 | 2026-10-19, `create_job` (1st attempt) | **D0 secret gate false positive**: the high-entropy `secret_token` rule flagged the slash-joined CLI subcommand list in PLAN.md (`init/append/verify/tail/export/import/compact/keygen/policy` — one 64-char alphanumeric token) → publish refused, Job never started | Split the list into prose (5e69e29); re-scan clean; `create_job` succeeded | WORKAROUND. The 0.7.0 fix (348d3a1) allowlisted pure-hex digests ≥40 chars and raised the minimum length to 40, but long ALPHANUMERIC compound tokens (non-hex) still trip it — second occurrence of this FP class (first: Cargo.lock SHA-256 checksums). Filed below. |
+| T2 | 2026-10-19, `verify_report` step | **MCP `falsegreen_verify_report` is impractical for large reports**: the argument is the report JSON as a STRING in the tool call (no file path). At v5 schema with a full Security/Standards section the report is ~84KB — the `read` tool truncates lines to 768 chars, bash cannot write to `xd://` MCP paths (read-only fs), so the only route is transcribing the full JSON through model context (corruption risk at that size) | Used the CLI `falsegreen verify-report docs/REPORT-4a69d00c.json` — the same `verify_report_json` implementation the MCP tool wraps, reading the file directly. Result: **VERIFIED** (verdict accepted, key `fg-report-9fc1a2c5-…-20261018-1`, digest `82c92878…`, schema v5) | WORKAROUND. Recommend the MCP tool accept a file path (or a `report_ref`) for ≥64KB reports. |
+| T3 | 2026-10-19, `get_report` polling | **Artifact wrapper is multi-line**: the terminal-verdict output is a JSON document where the first line is the payload and trailing lines are display wrappers (84,031 bytes total, 105 trailing) — `json.load` on the whole file fails with "Extra data" | Parse with `json.JSONDecoder().raw_decode` (first object wins) | NOTE. Cosmetic; one wasted parse round. |
+
+**Bugs to file upstream (falsegreen, 0.7.0):**
+
+1. D0 `secret_token` high-entropy rule still false-positives on long non-hex alphanumeric compound tokens (slash-joined identifiers). 348d3a1 covered hex digests only. Suggest: exclude tokens composed of a small identifier alphabet joined by `/` `-` `.` when they match known word lists, or raise the entropy floor above 4.0 bits/char for non-hex.
+2. MCP `falsegreen_verify_report`: accept a file path / artifact reference, not an inline string.
+
+## 11. Outcome
+
+- Job `4a69d00c-cc83-48e8-9267-510996677031`: **accepted**, attempt 1, 28.5s — `build` exit 0, `tests` exit 0 (51 tests: 41 core + 10 integration), `lint` exit 0 (clippy `-D warnings` + fmt), all security classes pass.
+- Signed report: `docs/REPORT-4a69d00c.json` — locally verified (T2), Ed25519 schema v5.
