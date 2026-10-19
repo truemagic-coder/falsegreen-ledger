@@ -163,7 +163,7 @@ Work-item DAG (each item names the criteria it serves):
 | `verification-engine` | full verify → JSON report + exit codes | shard-store, merkle-seal | tests, build |
 | `policy-engine` | policy file + violation detection | event-model | tests |
 | `compaction` | signed compact/re-root + root-linked traversal | shard-store, merkle-seal | tests |
-| `cli` | init/append/verify/tail/export/import/compact/keygen/policy | verification-engine, policy-engine, compaction | build, tests |
+| `cli` | 9 subcommands: init, append, verify, tail, export, import, compact, keygen, policy | verification-engine, policy-engine, compaction | build, tests |
 | `test-suite` | unit + integration: determinism, tamper, gaps, compact-invariance, policy, export, clippy/fmt | cli | tests |
 | `docs` | README + docs/DESIGN.md | cli | inspection |
 
