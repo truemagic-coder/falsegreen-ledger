@@ -8,9 +8,14 @@
 //! anchor. Designed for AI-agent action trails (see `docs/DESIGN.md`).
 
 pub mod chain;
+pub mod compact;
 pub mod event;
+pub mod integrity;
+pub mod policy;
 pub mod store;
+pub mod verify;
 
 pub use chain::{compute_record_hash, record_hash_input, Record, GENESIS_HASH};
+pub use compact::compact_last_sealed;
 pub use event::{Action, Actor, Correlation, Decision, Event};
 pub use store::{Ledger, LedgerError, Seal, ShardData};

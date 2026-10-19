@@ -76,6 +76,7 @@ pub enum LedgerError {
     },
     NoActiveShard,
     MalformedSeal(String),
+    Compaction(String),
 }
 
 impl std::fmt::Display for LedgerError {
@@ -95,6 +96,7 @@ impl std::fmt::Display for LedgerError {
             }
             LedgerError::NoActiveShard => write!(f, "no active shard to seal"),
             LedgerError::MalformedSeal(d) => write!(f, "malformed seal: {d}"),
+            LedgerError::Compaction(d) => write!(f, "compaction refused: {d}"),
         }
     }
 }
@@ -243,7 +245,14 @@ impl Ledger {
             "final shard has no seal but no active shard".into(),
         ))?;
         let max_seq = last.records.iter().map(|r| r.event.seq).max().unwrap_or(0);
-        Ok((max_seq, seal.merkle_root))
+        let next_prev = if crate::compact::is_compacted(&last.records) {
+            crate::compact::source_root(&last.records).ok_or_else(|| {
+                LedgerError::MalformedSeal("compacted shard has no source root".into())
+            })?
+        } else {
+            seal.merkle_root
+        };
+        Ok((max_seq, next_prev))
     }
 
     /// Append events, continuing the verified head. Validates each event and
