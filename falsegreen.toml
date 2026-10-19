@@ -1,0 +1,33 @@
+schema = 1
+language = "rust"
+wall_seconds = 1800
+
+[[criterion]]
+id = "build"
+title = "the workspace compiles"
+required = true
+  [[criterion.command]]
+  argv = ["cargo", "build", "--workspace", "--release"]
+  timeout_seconds = 600
+  allowed_exit_codes = [0]
+
+[[criterion]]
+id = "tests"
+title = "the full test suite passes offline"
+required = true
+  [[criterion.command]]
+  argv = ["cargo", "test", "--workspace"]
+  timeout_seconds = 900
+  allowed_exit_codes = [0]
+
+[[criterion]]
+id = "lint"
+title = "clippy and fmt are clean"
+required = false
+  [[criterion.command]]
+  argv = ["cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"]
+  timeout_seconds = 600
+  [[criterion.command]]
+  argv = ["cargo", "fmt", "--all", "--check"]
+  timeout_seconds = 120
+  allowed_exit_codes = [0]

@@ -1,0 +1,17 @@
+[package]
+name = "falsegreen-ledger-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Tamper-evident, hash-chained audit ledger core"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+ed25519-dalek = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true }
+tempfile = { workspace = true }
