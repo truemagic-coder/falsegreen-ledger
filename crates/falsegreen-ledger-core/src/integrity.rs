@@ -15,9 +15,7 @@ use crate::store::{seal_signing_message, Seal};
 pub fn merkle_root(record_hashes: &[String]) -> Result<String, String> {
     let mut level: Vec<Vec<u8>> = record_hashes
         .iter()
-        .map(|h| {
-            hex::decode(h).map_err(|e| format!("record hash is not hex: {e}"))
-        })
+        .map(|h| hex::decode(h).map_err(|e| format!("record hash is not hex: {e}")))
         .collect::<Result<_, _>>()?;
     if level.is_empty() {
         return Err("merkle root of an empty shard is undefined".to_string());
@@ -26,7 +24,11 @@ pub fn merkle_root(record_hashes: &[String]) -> Result<String, String> {
         let mut next = Vec::with_capacity(level.len().div_ceil(2));
         for chunk in level.chunks(2) {
             let left = &chunk[0];
-            let right = if chunk.len() == 2 { &chunk[1] } else { &chunk[0] };
+            let right = if chunk.len() == 2 {
+                &chunk[1]
+            } else {
+                &chunk[0]
+            };
             let mut hasher = Sha256::new();
             hasher.update(left);
             hasher.update(right);
@@ -34,7 +36,9 @@ pub fn merkle_root(record_hashes: &[String]) -> Result<String, String> {
         }
         level = next;
     }
-    Ok(hex::encode(level.pop().expect("the loop stops at one node")))
+    Ok(hex::encode(
+        level.pop().expect("the loop stops at one node"),
+    ))
 }
 
 /// Sign a seal: compute the Ed25519 signature over [`seal_signing_message`]
@@ -74,10 +78,9 @@ pub fn verify_seal_with(seal: &Seal, trusted_public_key_hex: &str) -> Result<(),
 fn check_signature(seal: &Seal) -> Result<(), String> {
     let sig_bytes =
         hex::decode(&seal.signature).map_err(|_| "seal signature is not hex".to_string())?;
-    let sig = Signature::from_slice(&sig_bytes)
-        .map_err(|e| format!("invalid signature: {e}"))?;
-    let key_bytes = hex::decode(&seal.public_key)
-        .map_err(|_| "seal public_key is not hex".to_string())?;
+    let sig = Signature::from_slice(&sig_bytes).map_err(|e| format!("invalid signature: {e}"))?;
+    let key_bytes =
+        hex::decode(&seal.public_key).map_err(|_| "seal public_key is not hex".to_string())?;
     let key = VerifyingKey::from_bytes(
         &key_bytes
             .as_slice()
@@ -153,7 +156,11 @@ mod tests {
         let mut root_h = Sha256::new();
         root_h.update(m12);
         root_h.update(m33);
-        assert_eq!(root, hex::encode(root_h.finalize()), "odd leaf pairs with itself");
+        assert_eq!(
+            root,
+            hex::encode(root_h.finalize()),
+            "odd leaf pairs with itself"
+        );
         assert_eq!(
             merkle_root(&h[0..1]).unwrap(),
             h[0],

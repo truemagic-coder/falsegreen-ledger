@@ -35,20 +35,15 @@ pub fn source_root(records: &[Record]) -> Option<String> {
 /// Seal the active shard with the private key: compute the Merkle root,
 /// sign, and write the seal line (the step before [`compact_last_sealed`]).
 pub fn seal_active_with(ledger: &Ledger, private_key_hex: &str) -> Result<u32, LedgerError> {
-    let active = ledger
-        .active_shard()
-        .map_err(|e| e)?
-        .ok_or(LedgerError::NoActiveShard)?;
+    let active = ledger.active_shard()?.ok_or(LedgerError::NoActiveShard)?;
     let hashes: Vec<String> = active.records.iter().map(|r| r.hash.clone()).collect();
     let prev_root = if active.index == 1 {
         None
     } else {
         let prev = ledger.load_shard(active.index - 1)?;
-        let prev_seal = prev
-            .seal
-            .ok_or_else(|| {
-                LedgerError::MalformedSeal(format!("shard {} is not sealed", active.index - 1))
-            })?;
+        let prev_seal = prev.seal.ok_or_else(|| {
+            LedgerError::MalformedSeal(format!("shard {} is not sealed", active.index - 1))
+        })?;
         Some(if is_compacted(&prev.records) {
             source_root(&prev.records).ok_or_else(|| {
                 LedgerError::MalformedSeal("compacted shard has no source root".into())
@@ -58,15 +53,14 @@ pub fn seal_active_with(ledger: &Ledger, private_key_hex: &str) -> Result<u32, L
         })
     };
     let mut seal = Seal {
-        merkle_root: merkle_root(&hashes)
-            .map_err(|e| LedgerError::MalformedSeal(e))?,
+        merkle_root: merkle_root(&hashes).map_err(LedgerError::MalformedSeal)?,
         count: active.records.len() as u64,
         prev_shard_root: prev_root,
         signature: String::new(),
         public_key: String::new(),
         sealed_at_ms: now_ms(),
     };
-    seal = sign_seal(seal, private_key_hex).map_err(|e| LedgerError::MalformedSeal(e))?;
+    seal = sign_seal(seal, private_key_hex).map_err(LedgerError::MalformedSeal)?;
     ledger.seal_active(&seal)
 }
 
@@ -94,11 +88,18 @@ pub fn compact_last_sealed(ledger: &Ledger, private_key_hex: &str) -> Result<Rec
         ));
     }
     if is_compacted(&shard.records) {
-        return Err(LedgerError::Compaction(format!("shard {last} is already compacted")));
+        return Err(LedgerError::Compaction(format!(
+            "shard {last} is already compacted"
+        )));
     }
 
     let last_record = shard.records.last().expect("non-empty checked");
-    let genesis_prev = shard.records.first().expect("non-empty checked").prev_hash.clone();
+    let genesis_prev = shard
+        .records
+        .first()
+        .expect("non-empty checked")
+        .prev_hash
+        .clone();
 
     let mut context: Map<String, Value> = Map::new();
     context.insert(SOURCE_SHARD.into(), Value::from(last));
@@ -145,8 +146,7 @@ pub fn compact_last_sealed(ledger: &Ledger, private_key_hex: &str) -> Result<Rec
     let path = ledger.shard_path(last);
     std::fs::write(&path, format!("{line}\n")).map_err(LedgerError::Io)?;
 
-    let root = merkle_root(std::slice::from_ref(&record.hash))
-        .map_err(LedgerError::Compaction)?;
+    let root = merkle_root(std::slice::from_ref(&record.hash)).map_err(LedgerError::Compaction)?;
     let new_seal = sign_seal(
         Seal {
             merkle_root: root,
@@ -231,7 +231,9 @@ mod tests {
     fn build_and_seal(tmp: &std::path::Path, n: usize, priv_hex: &str) -> Ledger {
         let ledger = Ledger::init(tmp).unwrap();
         for i in 1..=n {
-            ledger.append(std::slice::from_ref(&event(i as u64))).unwrap();
+            ledger
+                .append(std::slice::from_ref(&event(i as u64)))
+                .unwrap();
         }
         seal_active_from(&ledger, priv_hex);
         ledger

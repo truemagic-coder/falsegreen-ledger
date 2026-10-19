@@ -186,7 +186,11 @@ mod tests {
                 deny: true,
             }],
         };
-        assert_eq!(p.evaluate(&event("denied")).len(), 1, "a matching event is flagged");
+        assert_eq!(
+            p.evaluate(&event("denied")).len(),
+            1,
+            "a matching event is flagged"
+        );
         let mut ev = event("allowed");
         ev.action.name = "db.query".into();
         assert!(p.evaluate(&ev).is_empty());

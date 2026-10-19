@@ -13,7 +13,11 @@ use falsegreen_ledger_core::{
 };
 
 #[derive(Parser)]
-#[command(name = "falsegreen-ledger", version, about = "tamper-evident audit ledger")]
+#[command(
+    name = "falsegreen-ledger",
+    version,
+    about = "tamper-evident audit ledger"
+)]
 struct Cli {
     #[command(subcommand)]
     cmd: Cmd,
@@ -80,8 +84,7 @@ fn main() -> ExitCode {
         Ok(c) => c,
         Err(e) => {
             let code = match e.kind() {
-                clap::error::ErrorKind::DisplayHelp
-                | clap::error::ErrorKind::DisplayVersion => {
+                clap::error::ErrorKind::DisplayHelp | clap::error::ErrorKind::DisplayVersion => {
                     print!("{e}");
                     ExitCode::SUCCESS
                 }
@@ -132,13 +135,17 @@ fn run(cmd: Cmd) -> Result<ExitCode, CliError> {
         Cmd::Append { root, event } => {
             let events = parse_events(&event)?;
             let ledger = Ledger::open(&root);
-            let records = ledger.append(&events).map_err(|e| CliError::Runtime(e.to_string()))?;
+            let records = ledger
+                .append(&events)
+                .map_err(|e| CliError::Runtime(e.to_string()))?;
             println!("{}", serde_json::to_string(&records).unwrap());
             Ok(ExitCode::SUCCESS)
         }
         Cmd::Tail { root, n } => {
             let ledger = Ledger::open(&root);
-            let shards = ledger.load_all().map_err(|e| CliError::Runtime(e.to_string()))?;
+            let shards = ledger
+                .load_all()
+                .map_err(|e| CliError::Runtime(e.to_string()))?;
             let all: Vec<_> = shards.iter().flat_map(|s| s.records.iter()).collect();
             let start = all.len().saturating_sub(n);
             println!("{}", serde_json::to_string(&all[start..]).unwrap());
@@ -157,7 +164,9 @@ fn run(cmd: Cmd) -> Result<ExitCode, CliError> {
         }
         Cmd::Export { root, out } => {
             let ledger = Ledger::open(&root);
-            let shards = ledger.load_all().map_err(|e| CliError::Runtime(e.to_string()))?;
+            let shards = ledger
+                .load_all()
+                .map_err(|e| CliError::Runtime(e.to_string()))?;
             let doc = serde_json::json!({
                 "shards": shards.iter().map(|s| serde_json::json!({
                     "index": s.index,
@@ -174,10 +183,16 @@ fn run(cmd: Cmd) -> Result<ExitCode, CliError> {
         }
         Cmd::Import { root, file } => {
             let content = std::fs::read_to_string(&file).map_err(CliError::from)?;
-            let events: Vec<String> = content.lines().filter(|l| !l.trim().is_empty()).map(|l| l.to_string()).collect();
+            let events: Vec<String> = content
+                .lines()
+                .filter(|l| !l.trim().is_empty())
+                .map(|l| l.to_string())
+                .collect();
             let events = parse_events(&events)?;
             let ledger = Ledger::open(&root);
-            let records = ledger.append(&events).map_err(|e| CliError::Runtime(e.to_string()))?;
+            let records = ledger
+                .append(&events)
+                .map_err(|e| CliError::Runtime(e.to_string()))?;
             println!("{}", serde_json::to_string(&records).unwrap());
             Ok(ExitCode::SUCCESS)
         }
@@ -286,8 +301,9 @@ fn parse_event(json: &str) -> Result<Event, CliError> {
 }
 
 fn read_policy(path: &std::path::Path) -> Result<Policy, CliError> {
-    let policy: Policy = serde_json::from_str(&std::fs::read_to_string(path).map_err(CliError::from)?)
-        .map_err(|e| CliError::Usage(format!("policy JSON: {e}")))?;
+    let policy: Policy =
+        serde_json::from_str(&std::fs::read_to_string(path).map_err(CliError::from)?)
+            .map_err(|e| CliError::Usage(format!("policy JSON: {e}")))?;
     policy
         .validate()
         .map_err(|e| CliError::Usage(format!("policy: {e}")))?;

@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::chain::{is_valid_hash, Record, GENESIS_HASH};
-use crate::integrity::{merkle_root, verify_seal};
 use crate::compact::COMPACT_ACTION_KIND;
+use crate::integrity::{merkle_root, verify_seal};
 use crate::policy::Policy;
 use crate::store::{Ledger, LedgerError, Seal};
 
@@ -92,10 +92,7 @@ pub fn verify_ledger(
         return Err(LedgerError::Parse {
             shard: 0,
             line: 0,
-            detail: format!(
-                "shard indices are not contiguous from 1: {:?}",
-                indices
-            ),
+            detail: format!("shard indices are not contiguous from 1: {:?}", indices),
         });
     }
 
@@ -110,9 +107,7 @@ pub fn verify_ledger(
         let content = fs::read_to_string(&path).map_err(LedgerError::Io)?;
         let (records, seal) = parse_shard_lines(&content, shard, &mut failures);
         let mut shard_failures = 0u64;
-        let mark = |failures: &mut Vec<Failure>,
-                    f: Failure,
-                    shard_failures: &mut u64| {
+        let mark = |failures: &mut Vec<Failure>, f: Failure, shard_failures: &mut u64| {
             *shard_failures += 1;
             failures.push(f);
         };
@@ -137,10 +132,7 @@ pub fn verify_ledger(
                         kind: FailureKind::BadRecordHash,
                         shard,
                         seq: Some(record.event.seq),
-                        detail: format!(
-                            "stored hash {} does not recompute",
-                            record.hash
-                        ),
+                        detail: format!("stored hash {} does not recompute", record.hash),
                     },
                     &mut shard_failures,
                 );
@@ -155,10 +147,7 @@ pub fn verify_ledger(
                         kind: FailureKind::SequenceGap,
                         shard,
                         seq: Some(record.event.seq),
-                        detail: format!(
-                            "expected seq {expected_seq}, found {}",
-                            record.event.seq
-                        ),
+                        detail: format!("expected seq {expected_seq}, found {}", record.event.seq),
                     },
                     &mut shard_failures,
                 );
@@ -209,7 +198,14 @@ pub fn verify_ledger(
         let mut authoritative = recomputed.clone();
 
         if let Some(seal) = &seal {
-            check_seal(seal, &records, recomputed.as_deref(), shard, &mut failures, &mut shard_failures);
+            check_seal(
+                seal,
+                &records,
+                recomputed.as_deref(),
+                shard,
+                &mut failures,
+                &mut shard_failures,
+            );
             if seal.count as usize == records.len()
                 && recomputed.as_deref() == Some(seal.merkle_root.as_str())
             {
@@ -372,10 +368,7 @@ fn check_seal(
                 kind: FailureKind::BadMerkleRoot,
                 shard,
                 seq: None,
-                detail: format!(
-                    "seal root {} != recomputed {root}",
-                    seal.merkle_root
-                ),
+                detail: format!("seal root {} != recomputed {root}", seal.merkle_root),
             });
         }
     }
@@ -460,14 +453,13 @@ pub fn canonical_json<T: Serialize>(value: &T) -> String {
     serde_json::to_string(&v).expect("a Value serializes to a string")
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::event::{Action, Actor, Correlation, Decision, Event};
     use crate::integrity::sign_seal;
-    use std::fs;
     use crate::store::Ledger as L;
+    use std::fs;
 
     fn event(seq: u64, name: &str) -> Event {
         Event {
@@ -537,7 +529,11 @@ mod tests {
         let priv_hex = keypair();
         let ledger = build_ledger(tmp.path(), 5, Some(priv_hex.as_str()));
         let report = verify_ledger(&ledger, None).unwrap();
-        assert!(report.verified, "clean ledger must verify: {:?}", report.failures);
+        assert!(
+            report.verified,
+            "clean ledger must verify: {:?}",
+            report.failures
+        );
         assert_eq!(report.total_records, 5);
     }
 
@@ -587,8 +583,7 @@ mod tests {
         let kinds: Vec<FailureKind> = report.failures.iter().map(|f| f.kind).collect();
         assert!(kinds.contains(&FailureKind::BadRecordHash));
         assert!(
-            kinds.contains(&FailureKind::BrokenLink)
-                && kinds.contains(&FailureKind::BadMerkleRoot),
+            kinds.contains(&FailureKind::BrokenLink) && kinds.contains(&FailureKind::BadMerkleRoot),
             "a hash tamper must cascade to the link and the seal: {kinds:?}"
         );
     }
@@ -670,10 +665,7 @@ mod tests {
         let v: Value = serde_json::from_str(&json).unwrap();
         assert!(v["verified"].is_boolean());
         // canonical: no whitespace outside strings
-        let outside_strings = json
-            .chars()
-            .filter(|c| *c == ' ' || *c == '\n')
-            .count();
+        let outside_strings = json.chars().filter(|c| *c == ' ' || *c == '\n').count();
         // the sample data has no spaces in strings, so none may appear
         assert_eq!(outside_strings, 0);
     }

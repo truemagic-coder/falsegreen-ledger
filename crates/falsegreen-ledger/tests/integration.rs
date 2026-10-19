@@ -106,15 +106,7 @@ fn write_shard(root: &Path, index: u32, lines: &[Value]) {
 fn the_cli_help_lists_every_command() {
     let out = run_ok(&["--help"]);
     for cmd in [
-        "init",
-        "append",
-        "verify",
-        "tail",
-        "export",
-        "import",
-        "compact",
-        "keygen",
-        "policy",
+        "init", "append", "verify", "tail", "export", "import", "compact", "keygen", "policy",
     ] {
         assert!(out.contains(cmd), "--help missing {cmd}");
     }
@@ -163,11 +155,14 @@ fn a_tampered_prev_hash_is_detected() {
 
     // flip one byte of the prev_hash of the second record in shard 3
     let mut lines = shard_lines(&root, 3);
-    let prev = lines[1]["prev_hash"].as_str().expect("prev hash").to_string();
+    let prev = lines[1]["prev_hash"]
+        .as_str()
+        .expect("prev hash")
+        .to_string();
     let flip = |c: char| if c == 'a' { 'b' } else { 'a' };
     let mut chars = prev.chars();
     let first = chars.next().unwrap();
-    let flipped = flip(first).to_string() + &chars.as_str();
+    let flipped = flip(first).to_string() + chars.as_str();
     lines[1]["prev_hash"] = Value::String(flipped);
     write_shard(&root, 3, &lines);
 
@@ -188,16 +183,22 @@ fn a_tampered_seal_signature_is_detected() {
         .iter_mut()
         .find(|l| l.get("seal").is_some())
         .expect("shard 2 is sealed");
-    let sig = seal_line["seal"]["signature"].as_str().expect("signature").to_string();
+    let sig = seal_line["seal"]["signature"]
+        .as_str()
+        .expect("signature")
+        .to_string();
     let flip = |c: char| if c == 'a' { 'b' } else { 'a' };
     let mut chars = sig.chars();
     let first = chars.next().unwrap();
-    let flipped = flip(first).to_string() + &chars.as_str();
+    let flipped = flip(first).to_string() + chars.as_str();
     seal_line["seal"]["signature"] = Value::String(flipped);
     write_shard(&root, 2, &lines);
 
     let (code, report, _) = run(&["verify", root.to_str().unwrap()]);
-    assert_eq!(code, 3, "bad seal signature must exit 3, got {code}: {report}");
+    assert_eq!(
+        code, 3,
+        "bad seal signature must exit 3, got {code}: {report}"
+    );
     assert!(report.contains("bad_signature"));
 }
 
@@ -210,16 +211,22 @@ fn a_tampered_cross_shard_link_is_detected() {
     // flip one byte of shard 2's first record's prev_hash (the root link
     // from shard 1)
     let mut lines = shard_lines(&root, 2);
-    let prev = lines[0]["prev_hash"].as_str().expect("prev hash").to_string();
+    let prev = lines[0]["prev_hash"]
+        .as_str()
+        .expect("prev hash")
+        .to_string();
     let flip = |c: char| if c == 'a' { 'b' } else { 'a' };
     let mut chars = prev.chars();
     let first = chars.next().unwrap();
-    let flipped = flip(first).to_string() + &chars.as_str();
+    let flipped = flip(first).to_string() + chars.as_str();
     lines[0]["prev_hash"] = Value::String(flipped);
     write_shard(&root, 2, &lines);
 
     let (code, report, _) = run(&["verify", root.to_str().unwrap()]);
-    assert_eq!(code, 1, "tampered root link must exit 1, got {code}: {report}");
+    assert_eq!(
+        code, 1,
+        "tampered root link must exit 1, got {code}: {report}"
+    );
     assert!(report.contains("broken_link"));
 }
 
@@ -235,7 +242,10 @@ fn compaction_keeps_the_ledger_verifiable() {
     assert_eq!(record["event"]["action"]["kind"], "ledger.compact");
 
     let (code, report, _) = run(&["verify", root.to_str().unwrap()]);
-    assert_eq!(code, 0, "ledger must still verify after compaction: {report}");
+    assert_eq!(
+        code, 0,
+        "ledger must still verify after compaction: {report}"
+    );
 
     // appends continue past the compacted shard
     run_ok(&[
@@ -347,6 +357,9 @@ fn a_policy_violation_exits_policy() {
         "--policy",
         pol.to_str().unwrap(),
     ]);
-    assert_eq!(code, 4, "policy violation must exit 4, got {code}: {report}");
+    assert_eq!(
+        code, 4,
+        "policy violation must exit 4, got {code}: {report}"
+    );
     assert!(report.contains("policy_violation"));
 }
