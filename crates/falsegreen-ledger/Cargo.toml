@@ -10,6 +10,8 @@ falsegreen-ledger-core = { path = "../falsegreen-ledger-core" }
 clap = { workspace = true }
 serde_json = { workspace = true }
 hex = { workspace = true }
+ed25519-dalek = { workspace = true }
+rand = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

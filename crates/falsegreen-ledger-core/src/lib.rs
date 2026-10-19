@@ -16,6 +16,8 @@ pub mod store;
 pub mod verify;
 
 pub use chain::{compute_record_hash, record_hash_input, Record, GENESIS_HASH};
-pub use compact::compact_last_sealed;
+pub use compact::{compact_last_sealed, seal_active_with};
 pub use event::{Action, Actor, Correlation, Decision, Event};
+pub use policy::{Policy, PolicyViolation, Rule};
 pub use store::{Ledger, LedgerError, Seal, ShardData};
+pub use verify::{verify_ledger, Failure, FailureKind, ShardReport, VerificationReport};

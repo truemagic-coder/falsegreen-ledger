@@ -32,6 +32,44 @@ pub fn source_root(records: &[Record]) -> Option<String> {
     v.get("merkle_root")?.as_str().map(|s| s.to_string())
 }
 
+/// Seal the active shard with the private key: compute the Merkle root,
+/// sign, and write the seal line (the step before [`compact_last_sealed`]).
+pub fn seal_active_with(ledger: &Ledger, private_key_hex: &str) -> Result<u32, LedgerError> {
+    let active = ledger
+        .active_shard()
+        .map_err(|e| e)?
+        .ok_or(LedgerError::NoActiveShard)?;
+    let hashes: Vec<String> = active.records.iter().map(|r| r.hash.clone()).collect();
+    let prev_root = if active.index == 1 {
+        None
+    } else {
+        let prev = ledger.load_shard(active.index - 1)?;
+        let prev_seal = prev
+            .seal
+            .ok_or_else(|| {
+                LedgerError::MalformedSeal(format!("shard {} is not sealed", active.index - 1))
+            })?;
+        Some(if is_compacted(&prev.records) {
+            source_root(&prev.records).ok_or_else(|| {
+                LedgerError::MalformedSeal("compacted shard has no source root".into())
+            })?
+        } else {
+            prev_seal.merkle_root
+        })
+    };
+    let mut seal = Seal {
+        merkle_root: merkle_root(&hashes)
+            .map_err(|e| LedgerError::MalformedSeal(e))?,
+        count: active.records.len() as u64,
+        prev_shard_root: prev_root,
+        signature: String::new(),
+        public_key: String::new(),
+        sealed_at_ms: now_ms(),
+    };
+    seal = sign_seal(seal, private_key_hex).map_err(|e| LedgerError::MalformedSeal(e))?;
+    ledger.seal_active(&seal)
+}
+
 /// Compact the last sealed shard. The shard file is replaced with one
 /// compaction record plus a fresh seal; the chain continues from the
 /// original root and the same final sequence number.
