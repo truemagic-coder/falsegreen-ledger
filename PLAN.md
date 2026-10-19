@@ -233,7 +233,7 @@ Failure budget is generous: 8 attempts total, all inside one price.
 - The signed report returns **`accepted`**: `build` + `tests` evidence on the frozen source, per-criterion command evidence, frozen boundary digests, environment fingerprint, valid Ed25519 signature (locally verified), full Security & Standards section (5 evidence classes + 5 posture rows).
 - The repo contains the committed workspace, contract, plan reference, and the saved report (JSON) for the record.
 ## 10. FalseGreen trouble log
-
+Standalone record: `FALSEGREEN_ISSUES.md` (root).
 Running record of the friction met with the FalseGreen tooling in THIS project — the record is the point (D-RT scanner behavior, MCP surface ergonomics), so future projects can file the same bugs.
 
 | # | When | Trouble | Workaround | Status |
