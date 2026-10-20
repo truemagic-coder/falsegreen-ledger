@@ -1,1 +1,6 @@
+# Past signed verification reports: they embed base64 Ed25519 public keys +
+# signatures that the D0 secret gate (secret-rules-v1) flags as high-entropy.
+# They are verification artifacts, not source under verification.
+# (0.9.0 smoke, 2026-10-20)
+docs/REPORT-4a69d00c.json
 # Nothing to force-include: Cargo.lock is committed (never gitignored).
