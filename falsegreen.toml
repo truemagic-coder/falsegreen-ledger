@@ -30,4 +30,18 @@ required = false
   [[criterion.command]]
   argv = ["cargo", "fmt", "--all", "--check"]
   timeout_seconds = 120
-  allowed_exit_codes = [0]
+
+[[invariant]]
+name = "tampering is detected"
+description = "content edits, deletions, reorders, and seal forgery are all detected by verify with the documented exit codes"
+plan_refs = ["verify-engine", "verify-walk", "tamper-detected"]
+
+[[invariant]]
+name = "canonical bytes are stable"
+description = "canonical serialization is deterministic across round-trips and key orderings"
+plan_refs = ["core-event", "canonical-stable"]
+
+[[invariant]]
+name = "unknown-ref probe (0.9.0 smoke)"
+description = "smoke-test probe: per falsegreen_docs('contract'), unknown plan_refs are carried data, never validated"
+plan_refs = ["no-such-work-item-probe"]
