@@ -254,14 +254,17 @@ in a FalseGreen-signed report
 - **`falsegreen_docs('verdicts')`** does not mention the v6 report
   changes (the embedded SBOM/VEX/OSCAL exports, the per-export digests);
   'security' covers the section prose but not the export refs. Minor.
-- **DP-C display surface**: there is NO HTML page —
-  `https://falsegreen.com/report/<job_id>` serves the SIGNED JSON itself
-  (content-type application/json, byte-identical size), and `/pdf` serves
-  the 8-page PDF. So "PDF and HTML render identical sections" (the DP-C
-  requirement) can only be read as "PDF renders a subset of the JSON" —
-  which it does, correctly (see below). Consistent with the 0.8.0
-  baseline (report_url = JSON). Confirming that HTML was dropped by
-  design, not missing.
+- **DP-C display surface — CORRECTION to the note above**: the HTML
+  page EXISTS at `https://falsegreen.com/report/<job_id>/html` (the
+  bare URL serves the signed JSON; `/pdf` the PDF — the 0.8.0 report_url
+  behavior is unchanged). Divergence found by direct comparison of the
+  VEX section: the PDF renders `No vulnerability findings.` + "The full
+  SBOM, VEX and OSCAL are in the signed JSON report." + `JSON report:
+  https://falsegreen.com/report/<job_id>`; the HTML renders the first two
+  lines but **omits the JSON-report URL** (0 occurrences of
+  `falsegreen.com/report/<job_id>` anywhere in the HTML page). DP-C
+  required both to carry the `<site_base>/report/<job_id>` link — the
+  HTML renderer does not. See #13.
 - **One unexplained stderr line** during a `falsegreen security scan`
   (`Error: failed to parse: value expected`) while swapping
   `.falsegreenignore` mid-flow; NOT reproducible in 3+ clean runs after.
@@ -329,3 +332,209 @@ in a FalseGreen-signed report
    documented "without a digest" input is rejected
    (`INVALID_POLICY: missing field 'digest'`); a placeholder digest is
    required — fix the deserializer or the docs.
+
+## Security-class break campaign — 2026-10-20 (continued)
+
+Goal: try to break each of the five DP-E-mandatory evidence classes
+against the deployed 0.9.0 and observe the actual behavior. Method:
+reproduce each witness with the EXACT binary from the deployed job image
+(`falsegreen-job:rust1`: osv-scanner 2.7.0, semgrep 1.181.0, gitleaks
+8.30.1, syft 1.54.1) + the prod OSV store, then run live Jobs.
+
+**Headline: of the five mandatory classes, only `static_analysis` is
+actually inspecting anything.** The green run's witness raw-output
+digests (report `d4d5ab1f`) prove it — `e3b0c442…` is sha256 of the EMPTY
+string:
+
+| class | tool | raw_output_digest | evidence |
+|---|---|---|---|
+| dependency_vulnerability | osv-scanner | `54345d51…` | real output, but the parser extracts 0 findings from it (#10) |
+| static_analysis | semgrep | `80c185ac…` | real, and the parser matches the format |
+| secret | gitleaks | `e3b0c442…` | scanner scanned 0 bytes (#12) |
+| supply_chain | syft | `e3b0c442…` | scanner crashed on its own argv (#11) |
+| license | syft | `e3b0c442…` | same crashed scanner (#11) |
+
+All three empty-output classes evaluate to `pass` — a vacuous pass,
+indistinguishable in the report from a real pass except via the raw
+digest.
+
+### #10 — SCA class vacuous: `parse_osv` reads the legacy OSV batch-API
+format; the witness's own osv-scanner 1.x emits `results[].packages[]`
+
+- **Where**: `falsegreen-verifier/src/witness.rs` — `parse_osv`
+  (expects a top-level `"vulnerabilities"` map: ID → per-package rows,
+  the OSV *batch API* shape) vs the argv the witness actually runs
+  (`osv-scanner scan --recursive --format json --offline
+  --offline-vulnerabilities <dir>`, osv-scanner 2.7.0 output =
+  `{"results":[{"source":…,"packages":[{…,"groups":[…],
+  "vulnerabilities":[…]}]}]}`).
+- **Symptom**: reproduced with the image binary + prod OSV store:
+  (a) the GREEN workspace's exact repro output hashes to
+  `54345d5194d2…` — byte-identical to the green run's
+  `raw_output_digest` (its `results` is `[]` — offline mode only emits
+  packages matched in the local DB); (b) a workspace with
+  `time = "=0.3.9"` (RUSTSEC-2026-0009 / CVE-2026-25727, CVSS 6.8) emits
+  the `results[].packages[]` shape → `parse_osv` finds no top-level
+  `vulnerabilities` key → returns 0 findings. `normalize_osv_severity`'s
+  fields (`row.severity`, `row.database_specific.severity`) do not
+  exist in that shape either (severity lives in
+  `packages[].groups[].max_severity`) — so even with the shape fixed,
+  every finding would fall through to the `high` default.
+- **Why it matters**: a signed `accepted` verdict is reachable with a
+  KNOWN vulnerable dependency. The SCA class can never fail on the
+  deployed 0.9.0; DP-E's `dependency_vulnerability` requirement is
+  unenforced end-to-end.
+- **Gap**: parse the osv-scanner 1.x shape (map
+  `packages[].groups[].max_severity` → the canonical severity set; note
+  6.8 buckets to medium and would NOT gate under
+  `fail_on_severities = [critical, high]` — a separate policy question:
+  the frozen platform policy's fail-on bar may be higher than most
+  advisories, making the class pass-by-default in practice).
+- **Live proof pending**: run 1 of the campaign (workspace
+  `/tmp/scabreak`, commit `ffd02ed`) — expect SCA `pass` + overall
+  `accepted`.
+
+### #11 — supply_chain + license vacuous: the syft witness argv crashes
+the scanner
+
+- **Where**: the witness argv `syft dir --output json dir:/<src>`
+  (syft 1.54.1, from the job image).
+- **Symptom**: `syft dir --output json dir:/src` exits 1 — "accepts at
+  most 1 arg(s), received 2" — stdout empty; `parse_syft_*("")` → 0
+  findings → raw digest `e3b0c442…` (both witnesses, green run). The
+  correct argv is `syft dir:/src --output json` (or positional first).
+- **Why it matters**: two of the five mandatory classes (supply_chain,
+  license) pass on a CRASHED scanner, on every run, in every workspace.
+  Even with the argv fixed, the syft lockfile cataloger emits 0 license
+  facts for Rust, so `license` would still never fail for rust
+  workspaces (the class is unbreakable for this ecosystem either way —
+  the report should at least say that honestly).
+- **Gap**: fix the argv (flags after the positional `dir:<path>`);
+  re-derive the SBOM component findings from the working catalog; decide
+  the license class's semantics for lockfile-only ecosystems.
+
+### #12 — secret class vacuous: gitleaks runs without `--no-git` against
+a non-git published tree and scans 0 bytes
+
+- **Where**: the witness argv `gitleaks detect --source <dir>
+  --report-format json --no-banner --exit-code 0` (gitleaks 8.30.1) +
+  the publish selection (`falsegreen/crates/falsegreen/src/shim/workspace.rs`):
+  the tar carries EXACTLY the selected files and `.git` is
+  root-ignored by design → the job's source dir is NOT a git repository.
+- **Symptom**: reproduced in the image: on a non-git dir gitleaks logs
+  `fatal: not a git repository`, `0 commits scanned`, `scanned ~0
+  bytes`, `no leaks found` — while `AKIA…`/`ghp_…`/PEM files sit in the
+  tree. With `--no-git` (or a real git repo) the same files are scanned
+  (212 bytes read in the probe). Green run's secret witness raw digest =
+  `e3b0c442…` (empty output) — consistent with 0 bytes scanned.
+- **Note**: gitleaks' built-in rules are otherwise fine — the probe
+  misses were its own allowlist (`.+EXAMPLE$` for the AWS doc key) and
+  charset (`[A-Z2-7]{16}`), not a rule gap.
+- **Why it matters**: a secret in the published source cannot fail the
+  `secret` class at verify time. The D0 gate (client-side, at publish)
+  remains the ONLY secret control — and it is advisory-grade (pattern +
+  entropy heuristics; a below-threshold key like `FALLBACK_KEY =
+  "xK9mPq3vRt8wLz2c"` passes it, see run 2). DP-E's `secret`
+  requirement is unenforced end-to-end.
+- **Gap**: add `--no-git` to the witness argv (scan the tree as files);
+  the D4 no-raw-secret retention already holds in `parse_gitleaks`.
+- **Live proof pending**: run 2 (workspace `/tmp/smoke-sast`, commit
+  `c3a8687`) carries a D0-clean secret-like value + a semgrep-gated C
+  `gets()`; expect secret `pass` (vacuous) + static_analysis `fail` +
+  overall `failed`.
+
+### #13 — HTML report page omits the signed-JSON report URL (DP-C)
+
+- **Where**: `GET https://falsegreen.com/report/<job_id>/html` (the HTML
+  renderer) vs `/pdf`.
+- **Symptom**: the PDF's VEX section ends with `JSON report:
+  https://falsegreen.com/report/<job_id>`; the HTML VEX section has the
+  same two preceding lines but no URL (0 occurrences of the report path
+  in the whole HTML page). DP-C: both renderings carry
+  "full SBOM/VEX/OSCAL in the signed JSON report" + the
+  `<site_base>/report/<job_id>` link.
+- **Gap**: emit the URL line in the HTML VEX section (one-line fix,
+  server-side renderer); add a render-parity check (PDF vs HTML section
+  text) to the canaries.
+
+### Campaign runs
+
+| run | workspace / commit | payload | expectation |
+|---|---|---|---|
+| 1 | `/tmp/scabreak` `ffd02ed` | `time = "=0.3.9"` (RUSTSEC-2026-0009, CVSS 6.8) | SCA `pass` (parser drops the finding, #10) → `accepted` |
+| 2 | `/tmp/smoke-sast` `c3a8687` | C `gets()` (semgrep error→high) + D0-clean `FALLBACK_KEY` | static_analysis `fail` → `failed`; secret `pass` vacuous (#12) |
+| 3 | `/tmp/smoke-bidi` `d6f77a7` | bidi control char (semgrep warning→medium) | a MEDIUM finding recorded, class `pass` (below the fail-on bar) → `accepted` |
+
+Semgrep note (pre-tested with 1.181.0 `--config auto`, the witness
+config): the OSS auto set has NO error-level rule for Rust itself (max
+warning→medium) — the only reachable static_analysis failure for a rust
+workspace is a multilang rule (`generic.secrets.*`, `c.lang.*`, etc.);
+D0 blocks the `generic.secrets.*` payloads (it pattern-matches AWS/JWT
+itself), so the C-file `gets()` is the clean SAST break.
+
+### Campaign results (live, deployed 0.9.0) — 2026-10-20 ~18:15–18:45
+
+| run | job | verdict | observed |
+|---|---|---|---|
+| 1 | `7b1af65a` | `accepted` | time 0.3.9 compiled in the sandbox (build tail `Compiling time v0.3.9`); SCA `pass`, `findings: []` — but the osv raw digest `e52f7880…` ≠ the empty-tree one (`54345d51…`, which run 2 reproduced exactly with its clean lockfile) → the scanner DID output the advisory, `parse_osv` dropped it. **#10 confirmed live**: signed `accepted` on a known-vulnerable dependency. Report `docs/REPORT-7b1af65a.json`, Ed25519 verified. |
+| 2 | `521b9b31` | `accepted` | `gets()` recorded: rule `c.lang.security.insecure-use-gets-fn`, severity **`medium`** (NOT high — see #14), state open, `open_findings: 1` → below `fail_on=[critical,high]` → class `pass`, overall `accepted`. **A recorded finding on an accepted report — by design** (finding-vs-verdict separation works). secret raw `e3b0c442…` with `FALLBACK_KEY` in-tree (#12 live), supply_chain/license raw `e3b0c442…` (#11 live). Report `docs/REPORT-521b9b31.json`, Ed25519 verified. |
+| 3 | `e7f44f0f` | `failed` → **repaired** → `accepted` | Raw U+202E in a string literal → rustc `text_direction_codepoint_in_literal` is **deny-by-default** → `cargo build` fails (exit 101, locally reproduced) → attempt 1 `failed` in 17 s, Job parked at `repairing`. That is CORRECT verdict semantics (build is a required criterion; the SAST probe never got to run — bidi chars are a compile error in Rust, a Trojan-Source defense, not a semgrep-only signal). Fix = `"\u{202e}"` escape (identical semantics, compiles, all 4 contract commands green locally) → `repair_job` → attempt 2 `accepted` (55 s, source `fac47938…`) — **first live exercise of the repair loop** (free, same Job; report carries BOTH attempts `[1 Failed c6d9b2e8, 2 Accepted fac47938]`). Attempt-2 semgrep raw `80c185ac…` (non-empty wrapper, 0 findings — no bidi char once escaped, as expected). Report `docs/REPORT-e7f44f0f.json`, Ed25519 verified; entitlement `consumed` (one price across the two attempts, per the money model). |
+
+Correction of the pre-campaign semgrep note above: the assumption
+`--config auto` errors gate was WRONG — see #14; the `gets()` rule has
+registry severity ERROR but its SARIF result carries no `level`, and the
+witness defaults missing levels to `warning`→`medium`. Run 2's
+expectation (`static_analysis fail → failed`) was therefore unfounded;
+the deployed system recorded the finding and accepted.
+
+### #14 — `parse_sarif` ignores SARIF's rule-level severity default → semgrep findings can NEVER gate the verdict
+
+- **Where**: `falsegreen-verifier/src/witness.rs` — `parse_sarif`
+  (`let level = r.get("level").and_when… unwrap_or("warning")` at ~502 +
+  `normalize_sarif_level` error→high/warning→medium/note→low).
+- **Ground truth** (semgrep 1.181.0 = the witness's pinned version,
+  `--config auto --sarif`, same as the witness argv): the SARIF
+  **results NEVER carry `level`** — verified against ERROR-severity
+  registry rules (`python…eval-detected`, `subprocess-shell-true`,
+  `pickle.avoid-pickle`), the whole `generic.secrets.*` family
+  (JWT/stripe/slack/github/gitlab/npm/pypi/sendgrid/google/heroku/
+  digitalocean/mailgun/square/shopify/azure), and the C `gets()` rule
+  (deployed run 2 recorded it as `medium`). Severity instead lives in
+  `runs[0].tool.driver.rules[].defaultConfiguration.level` — e.g.
+  `trailofbits.python.pickles-in-numpy` = `error`; most community rules
+  = `warning`. Per SARIF 2.1.0, an absent `result.level` MEANS the rule
+  descriptor's default applies.
+- **Consequence**: the witness records EVERY semgrep finding as
+  `medium` (or never at all) → `fail_on=[critical,high]` can never
+  match → **`static_analysis` cannot fail the verdict on the deployed
+  0.9.0**, for any workspace in any language. The class is not vacuous
+  (it really scans, and findings land in the report), but its failure
+  path is unreachable — 4 of the 5 DP-E classes cannot block.
+- **Fix**: `parse_sarif` should build `ruleId →
+  defaultConfiguration.level` from `tool.driver.rules` and use it when
+  `result.level` is absent (fallback `warning` remains SARIF's default).
+  No new dependency; ~10 lines + one test fixture with
+  `defaultConfiguration: {"level":"error"}`.
+- **Bonus observation**: `unknown_severity = "insufficient"` never fires
+  via SAST because the fallback always yields a known severity.
+
+### Campaign money + lifecycle notes
+
+- 3 Jobs fired from one frozen plan (identical `plan_sha256
+  de42ce46…`); queue ran them sequentially (~40 s each, 1 slot).
+- The repair loop worked as documented: `repairing` → fix workspace →
+  `repair_job` → attempt 2, free, contract+plan stay frozen
+  (`contract_sha256 fccb4ab9…` unchanged across attempts).
+- `/tmp` got cleaned mid-campaign (workspaces under /tmp vanished —
+  host tmpfiles policy); rebuilt run 3 at
+  `/mnt/308ef833-…/smoke-bidi`. Keep campaign workspaces on the data
+  drive.
+- `contract.invariants: []` in all three reports — re-confirmed #7 on
+  every run.
+- The HTML-page gap (#13) re-observed: run 3's `report_url` serves the
+  signed JSON (PDF at `/pdf`) — render parity still only via PDF.
+- `normalized_evidence_digest 4f53cda1…` = sha256(`"[]"`) — every
+  witness normalizes to the empty findings array in all three runs;
+  a raw digest difference (e.g. semgrep `80c185ac…`) with findings `[]`
+  is a non-empty WRAPPER, not dropped findings — except for SCA, where
+  #10's parse drop is independently proven.
