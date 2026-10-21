@@ -851,3 +851,12 @@ coherence path is clean now).
   makes the CLAIM immutable (I could not soften the invariant between
   attempts; only code+tests moved), so the artifact is a provable,
   timestamped record of the contradiction (digest `f9e03ea4…`).
+
+### Minor — `entitlements.charged_at` never written (0.10.0, live DB)
+
+- All 27 `consumed` polar_purchase rows have `charged_at IS NULL` while
+  `state='consumed'`; the charge fires per docs but the audit timestamp
+  column is never populated. Cosmetic/audit only — `account_status`
+  reports the state correctly. (Checked while answering the balance
+  question; the 21-tool surface has no account-balance read at all —
+  worth a `falsegreen account` CLI/docs('purchase') line.)
