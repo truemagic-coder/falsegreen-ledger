@@ -538,3 +538,138 @@ the deployed system recorded the finding and accepted.
   a raw digest difference (e.g. semgrep `80c185ac…`) with findings `[]`
   is a non-empty WRAPPER, not dropped findings — except for SCA, where
   #10's parse drop is independently proven.
+
+---
+
+## 0.10.0 re-smoke campaign — 2026-10-21
+
+Setup: shim 0.10.0; contract extended to **ten `[[invariant]]` sections**
+capturing the ledger's whole implemented behavior (DESIGN.md §§1-10 +
+README exit-code table + threat-model scope), each `plan_refs`-linked to
+the plan work items that pin it; frozen policy digest `14a6293f…`
+(computed WITHOUT a placeholder digest — the 0.10.0 serde-default fix
+works); `freshness_hours: 24` now exercised; plan `fc5315fc…` reused
+across all tasks (validate: 0 errors, 0 warnings — the plan↔contract
+coherence path is clean now).
+
+### #15 — shim `security scan` SCA row misses a CRITICAL advisory it checked
+
+- **Where**: `falsegreen security scan` (client SCA, `sca.source:
+  osv.dev`), workspace `smoke-sca`.
+- **Symptom**: `"smallvec"@"1.6.0"` appears in `checked` but
+  `vulnerable: []`. `api.osv.dev/v1/query` for the same
+  package+version returns GHSA-43w2-9j62-hq99 / RUSTSEC-2021-0003,
+  **CRITICAL, CVSS 9.8** (curl, 2026-10-21). The job-image witness (0.10.0
+  `parse_osv` 2.x shape) DID flag it — the coordinator downgrade log for
+  `f3ce10a7` proves the class was unsatisfied. So client and server
+  disagree on the same package at the same moment.
+- **Why it matters**: the client row is the pre-publish early-warning
+  surface; a vacuous `vulnerable: []` there is the same class of bug as
+  #10, on the other side of the wire.
+- **Gap**: check the shim's OSV query path (batch API? cached DB?
+  response-shape parse — likely the same 2.x `results[]` vs
+- **ROOT CAUSE (source)**: `crates/falsegreen/src/shim/security.rs:411`
+  parses `v["vulnerabilities"]` out of the **`/v1/querybatch`** response —
+  but querybatch returns `{"results": [{"matches": [{"osv_id", …}]}]}`
+  (position-aligned with the queries); `vulnerabilities[]` is the
+  single-package `/v1/query` field. The lookup silently misses →
+  `vulnerable: []` for every input — fail-open (no IE branch on the
+  shape mismatch; line 343 even prints bare `source: "osv.dev"` when
+  the list is empty). Same bug family as #10, shim-side; predates
+  0.10.0, invisible until a payload was actually vulnerable.
+- **Gap**: parse `results[].matches[].osv_id` positionally (or use
+  per-package `/v1/query`); treat an unexpected shape as Insufficient
+  Evidence, never an empty list.
+
+### #16 — a PROVEN policy violation downgrades to `insufficient_evidence`, not `failed`
+
+- **Where**: `falsegreen-server/src/coordinator/mod.rs:847-854` — the
+  `passed wire` + `!section.satisfied` branch emits
+  `negative_attempt_event(Insufficient)` unconditionally.
+- **Ground truth** (live, `f3ce10a7` attempt 1, smallvec CRITICAL
+  pinned): worker wire `verdict=passed` (all criteria green — the
+  vulnerable dep compiles); server log `WARN "passed wire: the five
+  mandatory security classes are not satisfied; downgraded to
+  insufficient_evidence"` → `ATTEMPT_INSUFFICIENT`. Budget-exhaustion
+  path (`domain/repair.rs:43-55`) lands the Job terminal
+  `insufficient_evidence`.
+- **Why it matters**: `docs('verdicts')` defines
+  `insufficient_evidence` = "the evidence could NOT establish the full
+  boundary". Here the evidence established the OPPOSITE of done — a
+  critical advisory — which is precisely the `failed` shape ("which
+  criterion/commands failed — this is your repair input"). The label
+  also collapses two opposite postures (UNAVAILABLE vs demonstrated-
+  violation) into one downgrade event; the WARN text says "not
+  satisfied" without naming which class or why.
+- **Fix**: in the passed-wire branch, distinguish
+  any-class-`fail` (→ `AttemptFailed` / `RepairExhaustedFailed`) from
+  any-class-`insufficient` (→ Insufficient); log the offending classes
+  + severities in the WARN.
+
+### #17 — HIGH: `repair_job` re-publishes the PINNED workspace; a `workspace` argument is silently ignored, and the repair closed a payload job `accepted` on a tree without the payload
+
+- **Live incident** (`f3ce10a7`, run B): attempt 1 `insufficient` on
+  source `bf9ae70b…` (smallvec pinned — build tail shows `Compiling
+  smallvec v1.6.0`). I committed a marker to `smoke-sca` and called
+  `repair_job` with `workspace=/mnt/…/smoke-sca`. Attempt 2 ran
+  `source_sha256 cd5952a3…` — **the rust-demo tree** (the shim's pinned
+  workspace, byte-identical to the earlier baseline run), NOT smoke-sca.
+  The job closed **`accepted`** — the payload was never re-verified, and
+  the paid-for determination answers for a different source than the
+  one that failed.
+- **Where**: the MCP `repair_job` surface takes only `job_id`
+  (0.10.0 schema); the shim re-snapshots `falsegreen pin`'s workspace
+  regardless of the job's task-bound workspace from `create_job`.
+- **Why it matters**: the repair contract is "the next attempt runs
+  exactly what you fixed" — pin-vs-task-workspace divergence makes that
+  silently false. A user with several workspaces (exactly the campaign
+  pattern) can pay for an `accepted` verdict that never saw the payload.
+- **Gap**: (a) the tool should accept/remember the job's workspace (the
+  task binds it server-side — the server knows; the shim ignores it);
+  (b) at minimum, refuse or warn loudly when the pinned workspace's
+  re-derived source differs from the job's create-time workspace; (c)
+  the docs' "fix the code in the workspace" should say THE pinned
+  workspace.
+- **Process workaround used for the rest of this campaign**:
+  `falsegreen pin <job-workspace>` before every repair.
+
+### #18 — the signed report carries only the TERMINAL attempt's security section; gate-firing findings of earlier attempts are not in the audit artifact
+
+- **Ground truth**: `f3ce10a7`'s signed report shows attempts
+  `[1 Insufficient bf9ae70b, 2 Accepted cd5952a3]` but the Security
+  section (findings, witnesses, class postures) is **only attempt 2's**
+  — the clean tree: 0 dependency findings, `satisfied: true`. The
+  CRITICAL smallvec gate-fire of attempt 1 exists ONLY in server logs.
+- **Why it matters**: the signed report is THE audit artifact ("the per-
+  attempt history (each attempt's own source identity)" is all it
+  carries); a customer proving "we caught the advisory" from the
+  artifact alone cannot — the fail-closed evidence evaporated. Combined
+  with #16 the campaign's core claim ("critical findings now gate") is
+  true in behavior but invisible in the signed record.
+- **Gap**: persist the security section per attempt (at least for
+  negative attempts) — or make the terminal report of an
+  exhausted/blocked Job carry the FIRST negative attempt's section.
+
+### Minor notes (0.10.0 process smoothness)
+
+- `verification_ms: 0` on the first-attempt-accepted report (b663b119)
+  vs `259073` on B — the field is only filled on multi-attempt/repaired
+  jobs (cosmetic, but `0` reads like "instant").
+- Draft-save is the one heavy payload repeated per break task (no
+  "copy plan from task X" surface); fine at 4 tasks, note for
+  campaign ergonomics.
+- `repair_job` with NO source change is refused (`NO_SOURCE_CHANGE`) —
+  correct; to drive the attempt budget on purpose the workspace must
+  churn between repairs (markers).
+- `supersede_job` on a terminal job works as documented (fresh id, same
+  boundary; `f3ce10a7 → 520d2155`).
+- Fixed and re-confirmed live (0.10.0): **#7** ten invariants echoed
+  verbatim in every report; **#11** syft raw digests real
+  (`d9d3b082…`/`28676e27…`), 74 supply-chain + 72 license fact rows,
+  `dependency-manifest` v1 as the license witness; **#12** gitleaks raw
+  `37517e5f…` (not the empty digest); **#13** the JSON-report URL line
+  now present in BOTH HTML and PDF VEX sections; **#9/DP-10.4** the
+  publish scan is gate-clean over the saved signed reports (ruleset v2,
+  21 files); **#10** the advisory parses and gates (via the #16 path —
+  signed-artifact visibility pending on the exhausted re-run
+  `520d2155`).
