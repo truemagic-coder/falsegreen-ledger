@@ -786,3 +786,26 @@ coherence path is clean now).
 - **#16** (class fail ⇒ still `insufficient_evidence`, never `failed`)
   reproduced on all three failing Jobs; **#19** (terminal report omits
   its final attempt row) likewise on both exhausted Jobs.
+
+### #21 — DECISION (user, 2026-10-21): license (and arguably supply_chain) MUST gate the verdict
+
+- **Current (0.10.0)**: `server/src/domain/security.rs:210-226` treats
+  SupplyChain + License as INVENTORY classes — their findings are
+  EXEMPT from `fail_on_severities` and `unknown_severity`; test
+  `inventory_findings_never_drive_the_severity_policy` (:1137) pins
+  "inventory rows must not fail or IE their class". Consequence live:
+  a workspace can build against any license (GPL, unknown, none) and
+  every report posts license `pass`; no policy field can change that —
+  the frozen SecurityPolicy has no license allow/deny surface.
+- **Ruling**: an invalid/prohibited license is a FAILED build input —
+  shipping on a component you may not distribute is not acceptable.
+- **Design direction** (for the next release): add a license gate to
+  the frozen policy — e.g. `allowed_licenses: [SPDX expressions]`
+  (+ optional `deny`); evaluate turns a license finding outside the
+  allow-set into a GATE-class finding (severity mapped from policy, or
+  a dedicated any-unexcepted rule like `secrets_fail_on_any_unexcepted`
+  already gives the secret class). Keep syft/manifest facts inventory,
+  but the allow-set match is a hard determination. SupplyChain gate =
+  separate call (provenance facts inform; pin-repost may be the gate).
+- Not a smoke defect per se — behavior matches the shipped docs — this
+  is a product gap logged with the decision to close it.
