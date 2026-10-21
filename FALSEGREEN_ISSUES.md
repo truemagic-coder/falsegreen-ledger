@@ -673,3 +673,65 @@ coherence path is clean now).
   21 files); **#10** the advisory parses and gates (via the #16 path —
   signed-artifact visibility pending on the exhausted re-run
   `520d2155`).
+
+### Run B2 close (`520d2155`, supersede of `f3ce10a7`) — exhausted budget, findings NOW visible in the signed artifact
+
+- Full 8-attempt budget driven with pinned `smoke-sca` (every repair's
+  `source_sha256` matches the marker-churned payload tree — the #17
+  workaround holds end-to-end). Terminal: `insufficient_evidence`
+  (RepairExhausted), entitlement consumed ONCE (verified
+  `jobent_3052d586…` → consumed).
+- **Signed-artifact visibility (#18 partially healed for this shape)**:
+  the terminal report carries `security.findings` = 2 rows —
+  `osv/RUSTSEC-2021-0003` + `osv/GHSA-43w2-9j62-hq99`, component
+  `pkg:crates.io/smallvec@1.6.0` — and the `dependency_vulnerability`
+  class posture is **`fail`** with per-finding
+  reasons (`severity 'high' is frozen-fail`). `open_findings: 2`.
+  Ed25519 VERIFIED locally (`docs/REPORT-520d2155.json`).
+  #18's residual gap stands for MIXED histories (accepted-terminal
+  jobs like `f3ce10a7` still hide the earlier negative attempt's section).
+- **#16 confirmed decisively here**: class postures are
+  dv=`fail` + all four others `pass` — ZERO insufficient classes — and
+  the verdict is still `insufficient_evidence`, not `failed`. A policy
+  violation proven by every witness cannot produce a `failed` verdict.
+- **Severity-fidelity note**: GHSA-43w2-9j62-hq99 is CRITICAL
+  (CVSS 9.8) upstream; the server snapshot
+  (`osv-dev-20261021-457e10c8`) + witness record it as `high`. Gating
+  is unaffected here (`high ∈ fail_on`), but a `fail_on=[critical]`
+  policy would MISS a CVSS-9.8 advisory — check the snapshot's
+  severity derivation (ecosystem `severity` field vs CVSS band).
+  Also: one advisory = TWO findings rows (RUSTSEC + GHSA ids, same
+  component) — not deduplicated; cosmetically inflates `open_findings`.
+- **New #19 — the terminal report's `attempts[]` omits its own final
+  attempt**: B2 ran 8 attempts (repair responses `attempt:1..8`), the
+  report binds source `e8006c3f…` (= attempt 8's tree) and its witness
+  rows carry `observed_at` 18:02:17 (attempt 8's run), but the signed
+  `attempts[]` history lists only indices 1-7 (`de6b2e18…` last). The
+  audit artifact does not enumerate the run whose evidence it carries.
+
+### Campaign run ledger (0.10.0)
+
+| run | job | payload | verdict path | signed artifact |
+|---|---|---|---|---|
+| A baseline | `b663b119` | clean tree | attempt 1 `accepted` | `docs/REPORT-b663b119.json` ✓ 5 real witnesses, 10 invariants |
+| B SCA | `f3ce10a7` | smallvec 1.6.0 | 1 Insufficient → (pin race, #17) → 2 `accepted` on the WRONG source — closed by supersede | `docs/REPORT-f3ce10a7.json` ✓ (documents the #17 incident) |
+| B2 SCA | `520d2155` | same, pinned | 8× Insufficient (dv `fail` every attempt) → exhausted `insufficient_evidence` | `docs/REPORT-520d2155.json` ✓ findings + class fail in the artifact |
+| C SAST | `6123964d` | `np.load(allow_pickle=True)` | in flight | — |
+| D secret | task `task_fdebf312…` frozen | `FALLBACK_KEY` token | queued | — |
+
+### Run C close (`6123964d`) — SAST class now GATES; #14 fixed live; #19 reproduced
+
+- 8 attempts driven with pinned `smoke-sast`. Signed terminal
+  `insufficient_evidence` (`docs/REPORT-6123964d.json`, Ed25519 VERIFIED,
+  one entitlement `jobent_8281948a…` consumed).
+- **`static_analysis` class posture `fail`**: finding
+  `semgrep/trailofbits.python.pickles-in-numpy.pickles-in-numpy` recorded
+  at severity **`high`** (rule `defaultConfiguration.level = error` →
+  high, per the 0.10.0 `parse_sarif` fix) with class reason
+  "severity `high` is frozen-fail". All four other classes `pass`.
+  → 0.9.0's #14 (every finding `medium`, failure path unreachable) is
+  GONE; the class blocks. (Verdict label still `insufficient_evidence`
+  rather than `failed` — that's #16, unchanged.)
+- **#19 reproduced**: report binds source `44620131…` (attempt 8's tree)
+  but `attempts[]` again ends at index 7 (`95265b4b…`). Consistent across
+  both exhausted Jobs.
