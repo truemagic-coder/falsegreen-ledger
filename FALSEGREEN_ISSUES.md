@@ -717,7 +717,7 @@ coherence path is clean now).
 | B SCA | `f3ce10a7` | smallvec 1.6.0 | 1 Insufficient → (pin race, #17) → 2 `accepted` on the WRONG source — closed by supersede | `docs/REPORT-f3ce10a7.json` ✓ (documents the #17 incident) |
 | B2 SCA | `520d2155` | same, pinned | 8× Insufficient (dv `fail` every attempt) → exhausted `insufficient_evidence` | `docs/REPORT-520d2155.json` ✓ findings + class fail in the artifact |
 | C SAST | `6123964d` | `np.load(allow_pickle=True)` | in flight | — |
-| D secret | task `task_fdebf312…` frozen | `FALLBACK_KEY` token | queued | — |
+| D secret | `d17bafca` → superseded `ec3ef0d8` | low-entropy token → gitleaks-invisible (accepted, payload lesson) → `glpat-` probe | 8× Insufficient (secret `fail`, critical) → exhausted | `docs/REPORT-ec3ef0d8.json` ✓ secret class fail in artifact |
 
 ### Run C close (`6123964d`) — SAST class now GATES; #14 fixed live; #19 reproduced
 
@@ -735,3 +735,54 @@ coherence path is clean now).
 - **#19 reproduced**: report binds source `44620131…` (attempt 8's tree)
   but `attempts[]` again ends at index 7 (`95265b4b…`). Consistent across
   both exhausted Jobs.
+
+### Run D (`d17bafca`) — secret class: gate works BOTH sides, but detection is ruleset-bounded (payload lesson + #20)
+
+- Attempt 1 `accepted` with `FALLBACK_KEY = "xK9mPq3vRt8wLz2c"` in-tree:
+  gitleaks witness scanned REAL bytes (1.07 MB — #12 fixed) but its
+  default ruleset does not match a 16-char low-entropy token → secret
+  class `pass`, Job `accepted`. NOT a code defect: end-to-end detection
+  is bounded by the union of ruleset-v2 (gates) and gitleaks 8.30 rules
+  (witness). A token below both is invisible everywhere. Worth a docs
+  line ("what the secret class does NOT catch").
+- Server-side gate re-confirmed HARD: planting a `ghp_…` PAT made
+  `supersede_job` fail `PUBLISH_FAILED / UPLOAD_DIGEST_MISMATCH /
+  SECRET_REFUSED` — ruleset-v2 `github-token` fired at upload, store
+  entry NOT created, "the server gate has NO allowlist" (matches the
+  CLI remedy text; client `security allow` provably cannot except a
+  server-leg refusal). #9/DP-10.4 hold.
+- **NEW #20 — gate/witness ruleset asymmetry**: differential probe —
+  `glpat-Qv7t…` and `AIzaSyD…`: ruleset-v2 client scan = `clean`;
+  job-image gitleaks 8.30 = `gitlab-pat` + `gcp-api-key` HIT. So a
+  secret can sail through both publish gates (client + server) yet be
+  caught by the Job witness — defensible (witness is independent and
+  broader), but nothing documents the asymmetry, and the client
+  `security scan` "secret: clean" row is a false all-clear for those
+  shapes. Fix direction: document the two rule surfaces + surface the
+  witness rule ids back to the client docs, or align v2 ⊇ gitleaks
+  defaults for the major PAT shapes.
+- `security allow` CLI now EXISTS (0.9.0 gap fixed): path + mandatory
+  `--reason`, LOCAL ONLY, and the refusal it prevents is exactly the
+  local gate. Verified end-to-end (allow → scan clean → publish OK →
+  server gate independent).
+- Run D2 (`ec3ef0d8`, supersede of `d17bafca`) carries the asymmetric
+  glpat payload: attempt 1 verifying.
+
+### Run D2 close (`ec3ef0d8`) — the secret class NOW GATES live; #16 + #19 third reproduction
+
+- 8 attempts, pinned `smoke-secret`. Signed terminal
+  `insufficient_evidence` (`docs/REPORT-ec3ef0d8.json`, Ed25519 VERIFIED,
+  consumed once).
+- **`secret` class posture `fail`**: `gitleaks/gitlab-pat` finding at
+  severity **`critical`**, class reason "unexcepted secret finding … the
+  frozen secret policy fails on any" (`secrets_fail_on_any_unexcepted`
+  live). gitleaks raw digest `4c50926c…` ≠ clean-tree `37517e5f…` —
+  nonempty leak report from real bytes (#12 fully healed). The finding
+  carries NO raw secret value (redacted) ✓.
+- The publish-side gates never saw this token (ruleset-v2 blind to
+  `glpat-` — #20), so this is the clean proof of the DEEPER design
+  property: client-allowlisted / gate-invisible secrets are still caught
+  by the independent job witness and fail the paid determination.
+- **#16** (class fail ⇒ still `insufficient_evidence`, never `failed`)
+  reproduced on all three failing Jobs; **#19** (terminal report omits
+  its final attempt row) likewise on both exhausted Jobs.
