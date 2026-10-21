@@ -32,16 +32,51 @@ required = false
   timeout_seconds = 120
 
 [[invariant]]
-name = "tampering is detected"
-description = "content edits, deletions, reorders, and seal forgery are all detected by verify with the documented exit codes"
-plan_refs = ["verify-engine", "verify-walk", "tamper-detected"]
-
-[[invariant]]
 name = "canonical bytes are stable"
-description = "canonical serialization is deterministic across round-trips and key orderings"
-plan_refs = ["core-event", "canonical-stable"]
+description = "all hashed and signed material is canonical JSON (keys sorted lexicographically, no whitespace); hashing and signing always run over canonical bytes; key-order edits change stored JSON but not the canonical form (not tamper events), while any byte change to a value is; invalid values are rejected by validation, never silently normalized"
+plan_refs = ["behavior-tests.a-canonical"]
 
 [[invariant]]
-name = "unknown-ref probe (0.9.0 smoke)"
-description = "smoke-test probe: per falsegreen_docs('contract'), unknown plan_refs are carried data, never validated"
-plan_refs = ["no-such-work-item-probe"]
+name = "invalid events are rejected, never normalized"
+description = "event structs deny unknown fields; validation rejects empty required fields, a non-object context, out-of-range timestamps, and unknown fields; an invalid event is a corrupt-class failure at verify time, not a silent normalization"
+plan_refs = ["behavior-tests.a-validate"]
+
+[[invariant]]
+name = "the hash chain commits to content and order"
+description = "each record hash is SHA-256 over the canonical event map merged with prev_hash; the first record of the ledger links to GENESIS_HASH; record N links to N-1 iff prev_hash equals record N-1's hash AND seq equals record N-1's seq plus 1; any mismatch surfaces as a named failure: bad_record_hash, broken_link, or sequence_gap"
+plan_refs = ["behavior-tests.a-chain"]
+
+[[invariant]]
+name = "the shard store is append-only"
+description = "one append-only JSONL file per shard (shard-NNNNNN.jsonl, zero-padded index); append continues the verified head — seq derived from the head record and prev_hash from the head hash or the previous shard's root — and never rewrites existing shard content; line-level parse errors report the shard and line number"
+plan_refs = ["behavior-tests.a-append"]
+
+[[invariant]]
+name = "seals commit to the Merkle root and record count"
+description = "the Merkle root is pairwise SHA-256 over the shard's record hashes with an odd final leaf duplicated; the Ed25519 signature covers the canonical JSON of {count, kind: seal, merkle_root, prev_shard_root, sealed_at_ms} — signature and public_key are not part of the message; flipping any seal field breaks the signature, and a count mismatch is bad_seal_count"
+plan_refs = ["behavior-tests.a-seal"]
+
+[[invariant]]
+name = "compaction preserves the cross-shard root link"
+description = "compact_last_sealed replaces the last sealed shard with a single compaction record carrying the original seal verbatim and keeping the shard's genesis prev_hash, so root links into and out of the shard are unchanged; the new seal (count 1) re-signs over the compaction record; rewriting a compacted shard breaks the seal signature; the original content is no longer reconstructible from the ledger"
+plan_refs = ["behavior-tests.a-compact"]
+
+[[invariant]]
+name = "policy evaluation is per-event and per-rule"
+description = "at verify time every ledger event is evaluated against every policy rule: a deny rule flags any event matching its set matchers, a require_outcome rule flags a matching event whose decision outcome differs; violations appear as policy_violation failures carrying the rule_id"
+plan_refs = ["behavior-tests.a-policy"]
+
+[[invariant]]
+name = "exit codes form the CI contract with fixed precedence"
+description = "verify exits 0 clean, 1 tampered (bad_record_hash, broken_link, bad_merkle_root, broken_root_link), 2 gap (sequence_gap), 3 signature (bad_signature, bad_seal_count), 4 policy (policy_violation), 5 corrupt (parse_line, invalid_event, bad_seal_structure), 255 usage; when several classes coexist the most specific diagnosis wins in the order corrupt, gap, signature, tampered, policy"
+plan_refs = ["behavior-tests.a-exit"]
+
+[[invariant]]
+name = "export and import round-trips are hash-stable"
+description = "export emits one JSON document with deterministic typed shard serialization (never the raw stored lines, so file key order cannot leak); importing an exported ledger's events (without seq — it is derived) into a fresh ledger reproduces identical record hashes"
+plan_refs = ["behavior-tests.a-roundtrip"]
+
+[[invariant]]
+name = "the threat model states exactly what verify proves"
+description = "given an uncorrupted copy of the sealed shards and a known public key, verify proves content integrity, ordering and completeness within a shard, seal integrity, cross-shard continuity, and the compaction boundary; it does not prove: total replacement by a private-key holder with a re-signed shard, unanchored pre-seal history, shard loss (detected, not repaired), the truthfulness of written events, or membership of the policy file in the signed boundary"
+plan_refs = ["contract-invariants.a-scope-stated"]

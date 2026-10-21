@@ -434,7 +434,7 @@ a non-git published tree and scans 0 bytes
   `secret` class at verify time. The D0 gate (client-side, at publish)
   remains the ONLY secret control — and it is advisory-grade (pattern +
   entropy heuristics; a below-threshold key like `FALLBACK_KEY =
-  "xK9mPq3vRt8wLz2c"` passes it, see run 2). DP-E's `secret`
+  "xK9m…2c" (masked — since 0.10.0 the gitleaks witness catches this unmasked form in-job)` passes it, see run 2). DP-E's `secret`
   requirement is unenforced end-to-end.
 - **Gap**: add `--no-git` to the witness argv (scan the tree as files);
   the D4 no-raw-secret retention already holds in `parse_gitleaks`.
