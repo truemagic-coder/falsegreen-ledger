@@ -717,6 +717,7 @@ coherence path is clean now).
 | B SCA | `f3ce10a7` | smallvec 1.6.0 | 1 Insufficient → (pin race, #17) → 2 `accepted` on the WRONG source — closed by supersede | `docs/REPORT-f3ce10a7.json` ✓ (documents the #17 incident) |
 | B2 SCA | `520d2155` | same, pinned | 8× Insufficient (dv `fail` every attempt) → exhausted `insufficient_evidence` | `docs/REPORT-520d2155.json` ✓ findings + class fail in the artifact |
 | C SAST | `6123964d` | `np.load(allow_pickle=True)` | in flight | — |
+| E invariant | `35adbe16` | signature exits 1; suite pinned then realigned | 1 `Failed` (tests) → 2 Insufficient (log self-poison) → 3 `Accepted` with the FALSE invariant echoed | `docs/REPORT-35adbe16.json` ✓ |
 | D secret | `d17bafca` → superseded `ec3ef0d8` | low-entropy token → gitleaks-invisible (accepted, payload lesson) → `glpat-` probe | 8× Insufficient (secret `fail`, critical) → exhausted | `docs/REPORT-ec3ef0d8.json` ✓ secret class fail in artifact |
 
 ### Run C close (`6123964d`) — SAST class now GATES; #14 fixed live; #19 reproduced
@@ -809,3 +810,44 @@ coherence path is clean now).
   separate call (provenance facts inform; pin-repost may be the gate).
 - Not a smoke defect per se — behavior matches the shipped docs — this
   is a product gap logged with the decision to close it.
+
+### Run E (`35adbe16`) — invariant violation: the `failed` verdict works, but narrative invariants are NOT machine-enforced (#22)
+
+- Payload: `verify_exit_code` signature class flipped 3→1.
+- **Attempt 1 `Failed`** (33 s): `tests` criterion RED
+  (`a_tampered_seal_signature_is_detected` asserts exit 3) — a genuine
+  wire-fail `failed` verdict, first live on 0.10.0, with the failing
+  command + tail as the repair input.
+- **Attempt 2 `Insufficient`**: suite realigned to the broken behavior
+  (test now asserts 1) — but my OWN incident log in the tree quoted
+  `FALLBACK_KEY = "xK9m…"` verbatim and gitleaks `generic-api-key`
+  flagged the log file itself. The witness was RIGHT; scrubbed the
+  quoted literal from both trees. (Campaign hazard: break workspaces
+  copy the log — keep secret literals masked in it.)
+- **Attempt 3 `Accepted`** — and the signed, VERIFIED report
+  (`docs/REPORT-35adbe16.json`, attempts
+  `[Failed 0928df68, Insufficient 311c0e5b, Accepted 3aa9eeca]`) carries
+  the frozen invariant "verify exits … 3 signature (bad_signature,
+  bad_seal_count)" while its own verified source exits the signature
+  class with **1**. The README (uncarried, unchecked) also still says 3.
+- **NEW #22 — invariants are echoed, never evaluated.** Nothing in the
+  boundary ties an `[[invariant]]` claim to a machine check: criteria
+  are the sole authority, and a suite realigned to broken behavior
+  makes the paid determination certify a contract claim the source
+  contradicts. The plan_refs (`behavior-tests.a-exit` etc.) are
+  planning-time provenance, not runtime assertions.
+  **Fix direction**: make invariant↔evidence binding enforceable —
+  e.g. every invariant's `plan_refs` acceptance evidence must resolve
+  to a `criterion`-backed behavioral_test row that ran green in THIS
+  attempt (it mostly already does — the gap is that a green suite can
+  be realigned; the invariant text itself can never be satisfied by
+  editing tests). Practical options: (a) declare the invariant set
+  content-addressed against a named golden test list (contract lists
+  test names per invariant; the verifier greps attempt test output for
+  those names passing — renaming/deleting a pinned test then trips it);
+  (b) document invariants as advisory claims with plan provenance and
+  say so in docs. Product decision needed.
+- Note: this also demonstrates the GOOD half — the frozen contract
+  makes the CLAIM immutable (I could not soften the invariant between
+  attempts; only code+tests moved), so the artifact is a provable,
+  timestamped record of the contradiction (digest `f9e03ea4…`).
