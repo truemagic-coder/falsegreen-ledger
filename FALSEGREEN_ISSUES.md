@@ -152,3 +152,180 @@ Session: task `task_6b78e45e6332764d9a32b2293defaf1a`, Job
    compound tokens; the 348d3a1 hex-digest allowlist does not cover it.
 4. **MCP `falsegreen_verify_report`** (#5): accept a file path / artifact
    reference for ≥64KB reports.
+
+## 0.9.0 smoke test — 2026-10-20
+
+Session: task `task_9aca01d5501071ccf6703428f16204bc`, Job
+`d4d5ab1f-3b61-42ad-be7c-563eac82f8fd` (accepted, attempt 1, 29.1s), shim
+0.9.0, report schema v6. Same workspace, re-verified against the 0.9.0
+server + rebuilt job image. New surface exercised: contract
+`[[invariant]]` sections (DP-A), `falsegreen_compute_policy_digest`,
+schema-v6 report with embedded SBOM/VEX/OSCAL exports, PDF rendering.
+
+### #7 — contract `invariants` are silently dropped by the server (DP-A)
+
+- **Where**: `falsegreen_create_job` → report (the frozen contract object).
+- **Symptom**: `falsegreen.toml` carried three `[[invariant]]` entries
+  (committed as 74813b8 before `create_job`; the report's
+  `contract_sha256 fccb4ab9…` matches that file BYTE-FOR-BYTE — the
+  integrity binding includes them). The report's `contract.invariants` is
+  `[]` — empty — and the three names/descriptions/plan_refs appear NOWHERE
+  in the 162KB signed report (grep: 0 hits each). The server's contract
+  model has the field (it serializes `invariants: []`), so the section is
+  parsed but discarded.
+- **Why it matters**: `falsegreen_docs('contract')` documents the section
+  in full ("the CLAIMS this change is about — what the report maps to the
+  plan and shows on the cover"), and the 0.9.0 `next:` hint after
+  `create_task` explicitly tells the user to declare `[[invariant]]`
+  sections before drafting. The data is silently lost from the signed
+  report with zero errors and zero warnings (`validate_plan` was clean).
+  Silent loss of a documented field is the worst failure mode: the user
+  writes claims into the contract and the report proves nothing about them.
+- **Gap**: fix the server's contract parse/canonicalization to carry
+  `invariants` through to the frozen contract + the report cover mapping;
+  or, until then, remove the `[[invariant]]` docs + the `next:` hint
+  (an advertised no-op is worse than an advertised absence).
+- **Not testable this run**: the plan↔invariant cover mapping (DP-A's
+  visible output) — nothing to map, the invariants never arrived.
+
+### #8 — D0 secret gate: high-entropy FP on base64 Ed25519 key + signature
+in a FalseGreen-signed report
+
+- **Where**: `falsegreen_create_job` (1st attempt), 2026-10-20.
+- **Symptom**: publish refused `SECRET_REFUSED — 2 secret(s)`:
+  `docs/REPORT-4a69d00c.json:1644 high-entropy ie4e…` and `:1810
+  high-entropy CTAq…`. The flagged tokens are the 0.7.0 report's
+  `public_key` (base64 Ed25519, 44 chars) and `signature_ed25519` (base64
+  Ed25519, 88 chars) — PUBLIC cryptographic artifacts the report is
+  designed to carry (the whole `verify-report` workflow embeds the key).
+  The hex `signature` field passed (the 0.7.0 hex allowlist works);
+  base64 public key material is a NEW false-positive class.
+- **Workflow trap**: the 0.7.0 log's own guidance was "save the signed
+  report to docs/ and commit it" — doing so (pretty-printed at 7c7f67c)
+  then blocks EVERY future publish in the same workspace until the report
+  is excluded. The gate caught exactly what FalseGreen itself told the
+  user to keep.
+- **Resolution**: excluded `docs/REPORT-4a69d00c.json` via
+  `.falsegreenignore` (verification artifact, not source under
+  verification); `falsegreen security scan` clean (21 files); retry
+  succeeded. Exclusion widened to `docs/REPORT-*.json` for future runs.
+- **Gap**: allowlist base64 Ed25519 public keys (44 chars) and signatures
+  (88 chars) as public-by-design material, or exempt
+  `falsegreen verify-report`-compatible report files; at minimum the
+  high-entropy rule should not fire on the output of its own system.
+
+#9 — the D0 refusal's remediation does not exist in the 0.9.0 CLI
+
+- **Where**: the `SECRET_REFUSED` error text, `falsegreen_create_job`.
+- **Symptom**: the error directs: "add a scoped local allowlist entry
+  (never uploaded): `falsegreen security allow <path> --reason "…"`".
+  `falsegreen security allow` → `error: unrecognized subcommand 'allow'`.
+  The 0.9.0 CLI's `security` group is `scan | help` only. Same failure
+  class as 0.7.0 #2: an error pointing at a surface that cannot be
+  called.
+- **Also**: the refusal code `SECRET_REFUSED` (and the `PUBLISH_FAILED`
+  wrapper) is ABSENT from `falsegreen_docs('errors')`, which bills itself
+  as "every refusal code with cause + next action"; and the gate message
+  names ruleset `secret-rules-v1 @ 2026-10-19` while the CLI scan output
+  reports `secret-engine-v1` — two names for the secret ruleset in one
+  binary (detection behavior is in sync: the local scan reproduced the
+  exact same 2 rows, state `refused`).
+- **Gap**: ship `security allow` (or remove the instruction); add
+  `SECRET_REFUSED`/`PUBLISH_FAILED` to the errors docs; align the
+  ruleset names.
+
+### Observations (not counted as issues)
+
+- **Unknown `plan_refs` are carried, never validated — as documented.**
+  The probe invariant (`plan_refs = ["no-such-work-item-probe"]`) passed
+  `validate_plan` with 0 errors AND 0 warnings. Behavior matches
+  `falsegreen_docs('contract')` ("CARRIED DATA — never validated") — but
+  the 0.9.0 planning notes had DP-A as "unknown ref BLOCKS (error);
+  invariant with no refs = coherence WARNING". Flagging the
+  docs/behavior-vs-planning-note mismatch for confirmation of the final
+  intended semantics.
+- **`falsegreen_docs('security')` vs the DP-E spec**: the docs say "NO
+  POLICY = the platform-default policy (no required classes…)" while the
+  0.9.0 spec makes all five evidence classes mandatory
+  (`SecurityPolicy::platform_default()` requires `SecurityClass::ALL`).
+  This run cannot disambiguate — the plan's policy explicitly required
+  all five. Either the docs are stale or DP-E landed differently than
+  specified; worth a look.
+- **`falsegreen_docs('verdicts')`** does not mention the v6 report
+  changes (the embedded SBOM/VEX/OSCAL exports, the per-export digests);
+  'security' covers the section prose but not the export refs. Minor.
+- **DP-C display surface**: there is NO HTML page —
+  `https://falsegreen.com/report/<job_id>` serves the SIGNED JSON itself
+  (content-type application/json, byte-identical size), and `/pdf` serves
+  the 8-page PDF. So "PDF and HTML render identical sections" (the DP-C
+  requirement) can only be read as "PDF renders a subset of the JSON" —
+  which it does, correctly (see below). Consistent with the 0.8.0
+  baseline (report_url = JSON). Confirming that HTML was dropped by
+  design, not missing.
+- **One unexplained stderr line** during a `falsegreen security scan`
+  (`Error: failed to parse: value expected`) while swapping
+  `.falsegreenignore` mid-flow; NOT reproducible in 3+ clean runs after.
+  Root cause unknown — logged for completeness.
+
+### Working well (0.9.0)
+
+- **`falsegreen_compute_policy_digest` resolves 0.7.0 #1**: the digest is
+  now computable from the surface, and it returned
+  `34fe1472c058e78d…` — IDENTICAL to the digest the 0.7.0 server froze for
+  the same policy content. Canonical form is stable across 0.7.0→0.9.0.
+- **`falsegreen_verify_report` now takes `file_path`** (0.8.0) — 0.7.0 #5
+  is closed: 162KB report verified locally, no inline-string gymnastics.
+- **`get_report` structuredContent is clean** (0.7.0 #6 is closed): the
+  `report` is a JSON OBJECT (not a string), with `report_url`,
+  `report_pdf_url`, and `verdict` alongside it.
+- **Schema v6 report, 162KB** (vs 84KB v5): four embedded exports, each
+  with its own `ref` + content `digest` — `spdx-3.0` (54.8KB),
+  `cyclonedx-1.7` (26.3KB), `oscal-assessment-results-1.1.2` (5.1KB),
+  `cyclonedx-1.7-vex` (631B). The SBOM job-image fix is confirmed in the
+  artifact: 72 components, ALL `pkg:cargo/…` purls (0 `pkg:pypi`), tool
+  `cargo` (not the old hardcoded `pip`), licenses populated (e.g.
+  "MIT OR Apache-2.0"), SHA-256 hashes.
+- **Security section, DP-E-shaped**: all five classes `required: true`
+  and `pass` (osv-scanner 2.7.0, semgrep 1.181.0, gitleaks 8.30.1, syft
+  1.54.1 ×2), each witness row carries binary + config digests; the OSV
+  snapshot is identified in the report (`osv-dev-20261020-0d2f74a5`,
+  `observed_at` 2026-10-20T13:21:06Z, `freshness_hours: 24`).
+- **Standards section**: all five required profiles `satisfied`
+  (soc-2-tsc, iso-27001, cis-controls, nist-csf-2.0, cra), each with
+  per-requirement evidence_refs + rationale + the "mapping, not
+  certification" disclaimer.
+- **PDF (8 pages) honors the DP-C/DP-D display rules**: VEX section is
+  exactly `No vulnerability findings.` + "The full SBOM, VEX and OSCAL
+  are in the signed JSON report." + the report URL; NO SBOM section, NO
+  OSCAL section (the EXPORTS page is a ref+digest manifest, not content);
+  per-requirement `evidence_sha256` absent from the PDF (present once in
+  the signed JSON, as intended).
+- **Money model**: entitlement `consumed` exactly once at the terminal
+  verdict, `refund_state: null` (accepted); the `next:` hint after
+  `verify_report` names both public URLs.
+- **Integrity binding**: `contract_sha256` = sha256 of the raw
+  `falsegreen.toml` bytes (invariants included); worker re-derivation
+  passed (verdict accepted, no integrity gate trip).
+- Job execution: attempt 1, 29.1s wall — build 16.4s, tests 7.4s,
+  clippy 4.2s + fmt 0.1s (3/3 criteria, lint's non-required status
+  respected).
+
+### Upstream bug summary (falsegreen 0.9.0)
+
+1. **Contract `invariants` dropped** (#7): the server's contract model
+   serializes `invariants: []` for a file whose raw bytes (bound by
+   `contract_sha256`) carry three `[[invariant]]` entries — silent data
+   loss of a documented section that the `next:` hint actively
+   instructs. Highest-priority 0.9.0 finding.
+2. **D0 high-entropy FP on base64 Ed25519** (#8): public key + signature
+   in FalseGreen's own signed reports trip the new
+   `secret-rules-v1 @ 2026-10-19` ruleset; the "save your report"
+   workflow now blocks future publishes.
+3. **Dead-end D0 remediation** (#9): `falsegreen security allow` does not
+   exist in the 0.9.0 CLI; `SECRET_REFUSED`/`PUBLISH_FAILED` are missing
+   from `falsegreen_docs('errors')`; ruleset naming is inconsistent
+   between gate and scan.
+4. **`compute_policy_digest` input contract** (#7-pre, minor): the
+   documented "without a digest" input is rejected
+   (`INVALID_POLICY: missing field 'digest'`); a placeholder digest is
+   required — fix the deserializer or the docs.
