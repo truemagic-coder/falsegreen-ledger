@@ -860,3 +860,67 @@ coherence path is clean now).
   reports the state correctly. (Checked while answering the balance
   question; the 21-tool surface has no account-balance read at all —
   worth a `falsegreen account` CLI/docs('purchase') line.)
+
+## 0.13.0 proof-ladder campaign — 2026-10-23
+
+### Run A close (`68239ac0`) — the ladder decides a REAL defect; repair loop proven
+Task `task_1f1da457…`, plan frozen `7df70745…`, policy `cb4b2a86…`.
+Attempt 1 **failed** (91 s): all 11 L0 checks green, creusot `proven` 1/1,
+**kani `violated`** — `attempt to add with overflow` at
+`crates/ledger-rules/src/lib.rs:21` (`** 1 of 2 failed (1 unreachable)`) —
+a real latent hole in `Record::check_link` (debug: panic; release: wraps at
+`u64::MAX`, silently accepting a chain that wrapped). Repair = `checked_add`
+(source-only); attempt 2 **accepted** (87 s): kani `proven`, creusot `proven`
+1/1, all rungs green. One spend, at the terminal verdict only. The signed v9
+report carries BOTH attempts' rung rows; attempt 1's counterexample is in the
+signed JSON forever. Local keyless `verify-report` VERIFIED (schema v9).
+
+Working well (measured): violated rung → `failed` naming invariant + claim +
+counterexample; accepted unreachable while any rung disproves; UNAVAILABLE-
+never-pass machinery untouched; per-attempt source identities (`cbe14c8d…` →
+`6483cf5a…`); five security classes with real digests; one spend (Model W).
+
+### #23 — Pearlite v0.14 grammar: the docs teach the wrong operator spellings
+The Aeneas-flavoured spellings circulating in Creusot-adjacent docs fail on
+the pinned v0.14 parser: `prev +@ 1` → "expected term"; `<==>` → "expected
+term"; bare `seq == prev + 1` → E0308 (Int vs bool clause, 0.10-era finding).
+The shape that MEASURED as working, frozen into the contract: plain machine
+`+` with a literal suffix inside a nested equality —
+`#[ensures(result == (seq == prev + 1u64))]` — and the `#[requires]` guard is
+what closes the body's overflow obligation (without it `vc_links` stays open
+forever; verified with three guard shapes, two close, one leaves 0/1).
+`docs('proof')` teaches typed literals but never the clause-level arithmetic
+rule, never says `==` is the only equivalence, and never states that the
+requires guard (not an ensure-local bound) closes the definedness VC.
+
+### #24 — creusot `targets`: a bare function pattern silently matches EVERY crate's session
+The workspace has `ledger_rules::links` (unguarded code) and
+`ledger_spec::links` (guarded spec). `targets = ["links"]` matches the
+artifact dir name in BOTH (`verif/ledger_rules_rlib/links` and
+`verif/ledger_spec_rlib/links`), so the unguarded function's undischargeable
+overflow VCs pollute the tally → the rung pins at UNDECIDED forever even
+though the spec proves clean. The precise form (`verif/ledger_spec_rlib/links`)
+is documented ONLY in the verifier's Rust doc comment — `docs('proof')` /
+`docs('contract')` never show it. A user with a multi-crate workspace hits this
+blind. Suggestion: teach the artifact-path form in the self-doc surface, and
+have `validate_plan`/create pre-flight WARN when a pattern would match
+sessions in more than one crate (advisory, never blocking).
+
+### #25 — Kani on `String`/`format!`/parse machinery: 1000 s, no verdict
+The shard-naming claim's Kani stage was measured in-image: **no verdict at
+1000 s** (symbolic `core::fmt` machinery unwinding 544+ PadAdapter iterations
++ naive `memchr` loops). It is not a knob — the frozen argv (`kani-driver
+<harness>`) has no flags, and the rung wall (default 300 s) just makes the
+claim UNAVAILABLE, burning wall time per attempt. `docs('proof')` should state
+L1's domain: arithmetic + control flow; string/allocation-heavy claims ride
+L0 (unit tests) instead. The naming invariant now rides L0-only; the harness
+is kept as measured evidence.
+
+### #26 — F26 asymmetry: `create_job` resolves the workspace path, `repair_job` compares strings
+`create_job(workspace = ~/speedy/rust-demo)` bound `tasks.workspace` to the
+RESOLVED path (`/mnt/308ef833-…/rust-demo`); the identical submission on
+`repair_job` was refused `WORKSPACE_MISMATCH` (submitted vs stored string).
+One surface canonicalizes, the other does not — same tree, different answers.
+(0.13.0 shipped the `workspace` param + WORKSPACE_MISMATCH pre-flight; the
+symlink case is the unresolved half of F26.) Workaround: submit the canonical
+path. Campaign used the workaround; the finding is now live-proven twice.
