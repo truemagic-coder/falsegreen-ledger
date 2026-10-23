@@ -8,17 +8,24 @@
 //! bytes the binary runs — never a copy of them.
 //!
 //! ENCODING JUDGEMENT (recorded honestly at freeze): `links` below is the
-//! code AS THE LEDGER SHIPS IT — `prev + 1` is unguarded. The ladder's
-//! invariants claim the successor relation never wraps; if the machine
-//! disagrees with the sentence, that is a real defect in real code, and the
-//! repair loop fixes the CODE (the frozen claim stays).
+//! ENCODING JUDGEMENT (recorded honestly at freeze): `links` below SHIPPED as
+//! `prev + 1` unguarded. The ladder's invariant claims the successor relation
+//! never wraps; the machine DISAGREED on attempt 1 (Kani counterexample at the
+//! ceiling) — a real defect in real code — and the repair loop fixed the CODE
+//! (the frozen claim stayed). That is the campaign's point, in evidence.
 
 /// True when `seq` is the immediate successor of `prev`.
 ///
-/// This is `check_link`'s arithmetic part moved out of `Record::check_link`
-/// byte-for-byte (no semantic change): the ledger calls THIS.
+/// This is `check_link`'s arithmetic part moved out of `Record::check_link`.
+/// RUN A REPAIR (attempt 1, Job 68239ac0): Kani's L1 rung DISPROVED the frozen
+/// claim here — `prev + 1` overflowed at the ceiling (`ledger-rules/src/lib.rs:21`)
+/// — so the CODE now carries the guard the claim always stated: no successor
+/// exists past `u64::MAX`, and nothing links past it.
 pub fn links(seq: u64, prev: u64) -> bool {
-    seq == prev + 1
+    match prev.checked_add(1) {
+        Some(successor) => seq == successor,
+        None => false,
+    }
 }
 
 /// The file name one shard index serializes to (`store::shard_path`).
