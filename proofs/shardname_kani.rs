@@ -2,6 +2,14 @@
 // round-trips on the whole documented index domain (u32 indices up to the
 // 999_999 six-digit width) and has fixed width. Inputs are bounded INSIDE the
 // harness (docs('proof'): the frozen argv carries no flags).
+//
+// MEASURED (job image, 2026-10-23): this claim is NOT L1-practical — symbolic
+// `format!`/parse explodes in std fmt internals (PadAdapter::write_str
+// unwound past 544 iterations; NO verdict at 1000 s => the rung UNAVAILABLEs
+// and burns the attempt). The naming invariant therefore rides L0 only; this
+// file stays as the evidence. FALSEGREEN_ISSUES.md files the docs gap:
+// docs('proof')'s "loop-simple" rule warns about loops, not about std
+// String/alloc machinery, which is the real Kani wall for format/parse claims.
 
 #[path = "../crates/ledger-rules/src/lib.rs"]
 mod ledger_rules;

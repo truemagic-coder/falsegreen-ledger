@@ -20,7 +20,7 @@ use creusot_std::prelude::*;
 /// ceiling (an unguarded `prev + 1` here would carry an overflow obligation
 /// no prover closes — the docs('proof') rule, applied deliberately).
 #[requires(prev < 18446744073709551615u64)]
-#[ensures(result == (seq == prev + 1))]
+#[ensures(result <==> (seq == prev +@ 1))]
 pub fn links(seq: u64, prev: u64) -> bool {
     seq == prev + 1
 }

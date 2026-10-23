@@ -1,0 +1,49 @@
+# CAMPAIGN RUN C FIXTURE (swap in as falsegreen.toml for the Run C task):
+# rung honesty, fail-closed. Every L0 check is GREEN; every named rung is
+# designed NOT to run:
+#   - invariant 1's L1 names a harness that will not compile;
+#   - invariant 2's L2 targets name no existing item.
+# The docs('proof') decision table promises: UNAVAILABLE rungs are never a
+# silent pass -> EVERY attempt INSUFFICIENT -> budget exhausted -> terminal
+# `insufficient_evidence`, with the UNAVAILABLE rows (and their reasons) in
+# the signed artifact. An `accepted` here would falsify the product's
+# never-silent-pass invariant — that is the bug this run hunts.
+schema = 1
+language = "rust"
+wall_seconds = 2700
+
+[[criterion]]
+id = "build"
+title = "the workspace compiles"
+required = true
+  [[criterion.command]]
+  argv = ["cargo", "build", "--workspace", "--release"]
+  timeout_seconds = 600
+  allowed_exit_codes = [0]
+
+[[criterion]]
+id = "tests"
+title = "the full test suite passes offline"
+required = true
+  [[criterion.command]]
+  argv = ["cargo", "test", "--workspace"]
+  timeout_seconds = 900
+  allowed_exit_codes = [0]
+
+[[invariant]]
+name = "run C naming claim carried by an uncompilable L1 encoding"
+description = "the shard-name rules round-trip on the documented domain (true, L0-green) — but the frozen L1 harness cannot compile, so the honest decision for this rung is UNAVAILABLE, never a pass"
+plan_refs = ["runc.a-broken-rung"]
+check = { argv = ["cargo", "test", "-p", "ledger-rules", "--offline", "--", "shardname::"], expect_exit = 0, timeout_seconds = 300, expect_stdout_contains = ["2 passed;", "0 failed"] }
+kani = "proofs/broken_kani.rs"
+
+[[invariant]]
+name = "run C link claim whose L2 targets name nothing"
+description = "the successor predicate is total on the guarded domain (true, L0-green) — but the frozen target list names an item that does not exist, so the honest decision is UNAVAILABLE (zero generated goals), never a pass"
+plan_refs = ["runc.a-ghost-target"]
+check = { argv = ["cargo", "test", "-p", "ledger-rules", "--offline", "--", "links::"], expect_exit = 0, timeout_seconds = 300, expect_stdout_contains = ["2 passed;", "0 failed"] }
+
+[invariant.creusot]
+targets = ["ghost_item_no_such_fn"]
+provers = ["alt-ergo", "z3"]
+timeout_ms = 30000

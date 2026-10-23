@@ -251,3 +251,58 @@ Running record of the friction met with the FalseGreen tooling in THIS project �
 
 - Job `4a69d00c-cc83-48e8-9267-510996677031`: **accepted**, attempt 1, 28.5s — `build` exit 0, `tests` exit 0 (51 tests: 41 core + 10 integration), `lint` exit 0 (clippy `-D warnings` + fmt), all security classes pass.
 - Signed report: `docs/REPORT-4a69d00c.json` — locally verified (T2), Ed25519 schema v5.
+
+## 12. 0.13.0 adversarial campaign (2026-10-23, runs A–F)
+
+Standing process (user-directed): every release is smoked through the REAL
+installed shim (crates.io 0.13.0), as a real user, driving this workspace with
+Jobs designed to BREAK the new features; findings go to `FALSEGREEN_ISSUES.md`
+(numbered) and get committed here; then the next release plan (0.14.0) is
+drafted upstream against the findings. Budget: 10 paid Jobs.
+
+**Run A — the proof ladder over REAL code (1 Job).** Chain/shard rules were
+extracted byte-equivalently from the shipped code into the dependency-free
+`ledger-rules` crate (the binary now CALLS them — a Kani harness can prove the
+same bytes it runs); `ledger-spec` carries the Creusot (L2) guarded encoding;
+`proofs/` carry the Kani (L1) harnesses. Two contract invariants; the chain
+claim is deliberately STRONGER than the shipped arithmetic ("never wraps at
+the u64 ceiling" vs unguarded `prev + 1`). Expected: attempt 1 FAILED by a
+Kani counterexample on a REAL latent defect, repair (checked arithmetic),
+attempt 2 accepted — the fix-and-recheck loop proven on a genuine bug.
+
+MEASURED pre-flight (job image, `falsegreen-verify run`, zero spend):
+- **L1 Kani disproves the real code**: rung `violated`, counterexample
+  `attempt to add with overflow` at `crates/ledger-rules/src/lib.rs:21`
+  (`** 1 of 2 failed`). The overflow hole in `Record::check_link` is real.
+- L0: all 12 invariant checks green (pinned counts hold after the refactor).
+- Naming Kani stage TIMED OUT at the 300 s rung wall (symbolic `format!`/
+  parse machinery) → rung UNAVAILABLE → the rung wall rides
+  `check.timeout_seconds`; raised to 900, cost being measured.
+- Creusot spec E0308: a u64 clause `seq == prev + 1` is `Int` in Pearlite —
+  the machine-arithmetic operator `prev +@ 1` is required (undocumented).
+- `creusot-rustc` compiles the WHOLE multi-crate workspace (serde/ed25519/
+  clap all check) — L2 scales to real workspaces, not just fixture crates.
+
+**Run B — the 0.11.0 verdict gates (1 Job).** Plan security policy opts into
+`allowed_licenses` (exact-SPDX allow-set derived from this repo's own witness
+rows); attempt 1 carries a DRIFT payload (nested crate with a `Cargo.lock`
+declaring a component absent from the declared manifest → SC-1 supply_chain
+FAIL), attempt 2 a GPL-3.0 dependency (license gate FAIL), attempt 3 clean →
+accepted. One spend; both gates decide attempts, per DP-11.7/DP-11.3.
+
+**Run C — rung honesty, fail-closed (1 Job).** Contract carries a Kani slot
+pointing at a NON-EXISTENT harness, a Kani slot at a harness that will not
+compile, and a Creusot slot whose `targets` match nothing, all with green
+L0 checks: every attempt must end INSUFFICIENT (UNAVAILABLE rungs, never a
+silent pass, never `failed`); the budget exhausts to terminal
+`insufficient_evidence` with the UNAVAILABLE rows in the signed artifact.
+
+**Free probes (no spend).** Contract abuse (missing `check`, unknown keys,
+`kani=` path escape, re-drafting a FROZEN plan, cycle in the plan graph,
+bogus policy class, policy-digest tamper, frozen-language freeze-vs-create
+gate); secret asymmetry (ruleset v3 client scan vs server gate, temp trees
+only — never a planted literal in this repo, the log itself trips witnesses);
+`verify-report` tampering (byte flip in signature + in verdict, HTML input);
+repair edges (`NO_SOURCE_CHANGE`, `CONTRACT_CHANGED`, terminal repair,
+F26 symlinked-workspace refusal re-run); cancel-then-refund posture; the
+account surface vs the DB; docs-surface audit of every new feature.
