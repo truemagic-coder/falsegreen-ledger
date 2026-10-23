@@ -309,12 +309,14 @@ from the derived section). Signed copy: `reports/runB-d54370e9.json`.
 target, goals 0/0). Attempt 8: all five classes genuinely satisfied and the
 verdict STILL held IE — accepted is structurally unreachable on unknowable
 rungs. Signed copy: `reports/runC-15201f76.json`.
-**Free probes (no spend).** Contract abuse (missing `check`, unknown keys,
-`kani=` path escape, re-drafting a FROZEN plan, cycle in the plan graph,
-bogus policy class, policy-digest tamper, frozen-language freeze-vs-create
-gate); secret asymmetry (ruleset v3 client scan vs server gate, temp trees
-only — never a planted literal in this repo, the log itself trips witnesses);
-`verify-report` tampering (byte flip in signature + in verdict, HTML input);
-repair edges (`NO_SOURCE_CHANGE`, `CONTRACT_CHANGED`, terminal repair,
-F26 symlinked-workspace refusal re-run); cancel-then-refund posture; the
-account surface vs the DB; docs-surface audit of every new feature.
+**FREE PROBES CLOSED (no spend).** 10/10 refusal surfaces healthy:
+verify-report tamper 5/5 (incl. valid-variant verdict flip caught);
+contract abuse (unknown keys, typo table, check-less invariant, kani path
+escape containment, frozen/unknown langs) all refused with precise
+messages; plan abuse (cycle at draft, dup ids, bogus class at draft,
+digest tamper naming both digests) refused; cancel→refund clean
+(entitlement FULL refunded, verify then NOT_VERIFIABLE); #15 client-SCA
+VERIFIED FIXED (smallvec 0.6.13 → real OSV rows); charged_at written at
+spend (DB == MCP ledger); MCP account view complete. Issues #28–#32
+filed; F28 re-confirmed 0 rows; supersede probe deliberately skipped
+(whole-Job cost). Details + evidence: FALSEGREEN_ISSUES.md.
