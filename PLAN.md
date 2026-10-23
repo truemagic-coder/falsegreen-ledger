@@ -294,20 +294,21 @@ attempt-1 counterexample ride the signed v9 report forever; keyless local
 `verify-report` VERIFIED. Findings #23–#26 filed. Signed copy:
 `reports/runA-68239ac0.json`.
 
-**Run B — the 0.11.0 verdict gates (1 Job).** Plan security policy opts into
-`allowed_licenses` (exact-SPDX allow-set derived from this repo's own witness
-rows); attempt 1 carries a DRIFT payload (nested crate with a `Cargo.lock`
-declaring a component absent from the declared manifest → SC-1 supply_chain
-FAIL), attempt 2 a GPL-3.0 dependency (license gate FAIL), attempt 3 clean →
-accepted. One spend; both gates decide attempts, per DP-11.7/DP-11.3.
+**RUN B CLOSED (`d54370e9`, paid job 2/10)** — both gates decided live on
+one frozen policy: attempt 1 `failed` on SC-1 (`undeclared-component
+byteorder@1.5.0` discovered, absent from the declared set), attempt 2
+`failed` on the license gate (`GPL-3.0-or-later list-my-licence@0.3.4 not in
+the frozen allow-set`), attempt 3 clean → `accepted`. One spend, v9 VERIFIED
+keyless. Issue #27 filed = F25 live reproduction (post-repair per-attempt
+class rows claim insufficient_evidence; attempt-2's GPL finding vanishes
+from the derived section). Signed copy: `reports/runB-d54370e9.json`.
 
-**Run C — rung honesty, fail-closed (1 Job).** Contract carries a Kani slot
-pointing at a NON-EXISTENT harness, a Kani slot at a harness that will not
-compile, and a Creusot slot whose `targets` match nothing, all with green
-L0 checks: every attempt must end INSUFFICIENT (UNAVAILABLE rungs, never a
-silent pass, never `failed`); the budget exhausts to terminal
-`insufficient_evidence` with the UNAVAILABLE rows in the signed artifact.
-
+**RUN C CLOSED (`15201f76`, paid job 3/10)** — terminal `insufficient_evidence`,
+8/8 attempts `insufficient`, one spend, v9 VERIFIED keyless. kani rung
+`undecided` ×8 (compile-killed harness), creusot rung `unavailable` ×8 (ghost
+target, goals 0/0). Attempt 8: all five classes genuinely satisfied and the
+verdict STILL held IE — accepted is structurally unreachable on unknowable
+rungs. Signed copy: `reports/runC-15201f76.json`.
 **Free probes (no spend).** Contract abuse (missing `check`, unknown keys,
 `kani=` path escape, re-drafting a FROZEN plan, cycle in the plan graph,
 bogus policy class, policy-digest tamper, frozen-language freeze-vs-create
