@@ -739,7 +739,7 @@ coherence path is clean now).
 
 ### Run D (`d17bafca`) — secret class: gate works BOTH sides, but detection is ruleset-bounded (payload lesson + #20)
 
-- Attempt 1 `accepted` with `FALLBACK_KEY = "xK9mPq3vRt8wLz2c"` in-tree:
+- Attempt 1 `accepted` with `FALLBACK_KEY = "xK9m…REDACTED-IN-DOC"` in-tree:
   gitleaks witness scanned REAL bytes (1.07 MB — #12 fixed) but its
   default ruleset does not match a 16-char low-entropy token → secret
   class `pass`, Job `accepted`. NOT a code defect: end-to-end detection
