@@ -1,0 +1,9 @@
+[package]
+name = "drift"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+byteorder = "1.5.0"
+
+[workspace]
