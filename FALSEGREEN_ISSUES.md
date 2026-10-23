@@ -924,3 +924,50 @@ One surface canonicalizes, the other does not — same tree, different answers.
 (0.13.0 shipped the `workspace` param + WORKSPACE_MISMATCH pre-flight; the
 symlink case is the unresolved half of F26.) Workaround: submit the canonical
 path. Campaign used the workaround; the finding is now live-proven twice.
+
+### Run B (`d54370e9`) — SC-1 drift gate + opt-in license gate: first LIVE proof
+Three attempts, one frozen boundary (contract `cac85cf8…`, plan `a72684af…`,
+policy `3c9d13f0…` w/ 12-expression allow-set):
+- **attempt 1 `failed` (82 s)** — injected drift: `payload-sc1/` (standalone
+  nested crate whose lockfile declares byteorder, absent from the root
+  declared manifest). syft DISCOVERED it; server log: `classes=supply_chain,
+  reasons: undeclared component pkg:cargo/byteorder@1.5.0 — discovered in the
+  build, absent from the declared manifest (SC-1)` — on a `passed` criteria
+  wire (every criterion green), the class gate alone failed the attempt.
+  DP-11.7 always-on, exactly as designed.
+- **attempt 2 `failed` (86 s)** — drift removed, `list-my-licence 0.3.4`
+  (GPL-3.0-or-later) added: `license GPL-3.0-or-later
+  (pkg:cargo/list-my-licence@0.3.4) is not in the frozen allow-set`. Opt-in
+  gate fires per verbatim expression; supply_chain clean (declared).
+- **attempt 3** — clean tree → accepted (see close below). One spend.
+
+No product findings — both gates decide correctly, component named in the
+reason, no collateral (12 invariant checks + rungs stayed green every
+attempt). Campaign payload-selection lessons (free, recorded): `synfx-dsp`
+is nightly-only (E0554 under stable build — would have polluted the attempt
+on BUILD, not license); `rss` 2.x relicensed MIT; crates.io keyword "gpl"
+lies (gpx, office_oxide, gpl-token are MIT/Apache) — payload choice MUST
+read the version's license field.
+
+### Run B close (`d54370e9`) — ACCEPTED attempt 3; one spend; and F25 reproduced (worse than filed)
+Terminal: accepted, v9, one entitlement (`jobent_5c082c5b…` consumed at
+terminal, no refund); keyless `verify-report` VERIFIED. The gates decided
+every attempt (server-side at wire time — correct).
+
+### #27 — F25 live reproduction on a multi-gate repaired Job: the signed report's per-attempt security sections LIE about why attempts failed
+Attempts 1–2 (post-repair derivation): ALL five classes read
+`insufficient_evidence — witness <tool> scanned a different subject
+(untrusted)`, because the re-derivation compares every attempt's witness
+subject against the Job's CURRENT source sha. Consequences in the signed
+artifact:
+- attempt 1: the SC-1 reason line survives, but the class label says
+  insufficient_evidence — the report no longer says the violation was
+  DEMONSTRATED (the coordinator log says `FAILED … classes=supply_chain`).
+- attempt 2: WORSE than the filed F25 — the license finding
+  (`GPL-3.0-or-later`, list-my-licence@0.3.4) is ABSENT from the derived
+  attempt section entirely (0 findings): the signed report never documents
+  why attempt 2 failed. Only the raw embedded witness outputs in
+  `evidence[]` (F21) carry the truth, unpointed.
+Upstream fix target: 0.14.0 (F25) — re-derive each attempt against ITS OWN
+source identity, and keep demonstrated-violation labels + findings in the
+attempt's own section. This Job is the reproduction corpus.
