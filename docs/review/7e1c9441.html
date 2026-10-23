@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="generator" content="FalseGreen">
+<title>FalseGreen Verification Report — 7e1c9441-70ad-4bef-b906-224fccd4bd0d</title><style>
+@page { size: Letter; margin: 18mm; @bottom-right { content: "FalseGreen · " counter(page) " / " counter(pages); color:#64748b; font-size:9pt } }
+* { box-sizing:border-box } body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#172033; margin:0; font-size:10.5pt; line-height:1.45 }
+h1 { font-size:25pt; margin:0 0 8mm }
+h2 { color:#123b4a; border-bottom:1px solid #ccd8dc; padding-bottom:2mm; margin:9mm 0 0 0; font-size:13pt }
+.cover { min-height:235mm; page-break-after:always; position:relative; padding:2mm }
+.eyebrow { color:#087c72; font-weight:bold; letter-spacing:.08em; font-size:10pt }
+.badge { display:inline-block; background:#087c72; color:white; font-size:20pt; font-weight:bold; padding:3mm 6mm; margin:3mm 0 6mm; letter-spacing:.04em }
+.claim { font-size:13pt; border-left:4px solid #13a89e; padding:4mm; background:#edf9f7 }
+.warning { background:#fff7df; border-left:4px solid #d99b13; padding:3mm 4mm; margin-top:4mm }
+.facts { border-collapse:collapse; width:100%; margin-top:6mm }
+.facts th { text-align:left; width:32%; color:#52616b; font-weight:normal; vertical-align:top }
+.facts td, .facts th { padding:2mm; border-bottom:1px solid #e3e9eb }
+table.results { border-collapse:collapse; width:100%; margin-top:4mm }
+.results th, .results td { padding:2mm 3mm; border:1px solid #d8e0e3; vertical-align:top; font-size:10pt }
+.results th { background:#eef4f5; text-align:left }
+.results td.pass { color:#087c72; font-weight:bold }
+.results td.fail { color:#b3261e; font-weight:bold }
+.results td.na { color:#5b6570; font-weight:bold }
+code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size:9pt; word-break:break-all }
+.small { font-size:9pt; color:#52616b; margin-top:4mm }
+.hashline { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size:8.5pt; padding:1mm 0; word-break:break-all; color:#374151 }
+.attempt { margin-top:4mm }
+.attempt-head { font-size:10pt; font-weight:600; margin-bottom:1mm }
+.muted { color:#52616b }
+.placeholder { color:#52616b; font-size:10pt; font-style:italic }
+.section { margin-bottom:2mm }
+.section-title { font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#52616b; margin-bottom:2mm; padding-bottom:1mm; border-bottom:1px solid #e3e9eb }
+.btn-row { position:absolute; top:0; right:0 }
+.btn { display:inline-block; padding:2mm 4mm; color:white; text-decoration:none; background:#087c72; font-size:9pt; margin-left:2mm }
+.btn-json { background:#52616b }
+@media print { a { color:inherit; text-decoration:none } .btn-row { display:none } }
+</style></head><body>
+<section class="cover"><div class="btn-row">
+<a class="btn" href="/report/7e1c9441-70ad-4bef-b906-224fccd4bd0d/pdf">Download PDF</a>
+<a class="btn btn-json" href="/report/7e1c9441-70ad-4bef-b906-224fccd4bd0d/json">Download JSON</a>
+</div>
+<div class="eyebrow">VERIFICATION · SIGNED EVIDENCE</div>
+<h1>FalseGreen Verification Report</h1>
+<div class="badge" style="background:#087c72">ACCEPTED</div>
+<p class="claim">All required criteria passed for the exact source tree built and verified by FalseGreen.</p>
+<p class="warning">This does not prove universal correctness. Assurance is limited to the explicit formal properties, assumptions, models, summaries, and scope recorded in this report.</p>
+<table class="facts">
+<tr><th>Job</th><td><code>7e1c9441-70ad-4bef-b906-224fccd4bd0d</code></td></tr>
+<tr><th>Language</th><td>rust</td></tr>
+<tr><th>Source tree</th><td><code>5b632f62b9dc40cb6017d79b7de8f26c64da44774205a840f5f836a4d53d76b7</code></td></tr>
+<tr><th>Contract SHA-256</th><td><code>d26096cf05dd45302f918681df1b1a86c336509080cc6410484f4b249b45cded</code></td></tr>
+<tr><th>Criteria SHA-256</th><td><code>355294746657d2985d541b3596b3f835f85af67bba2f87b8a0133c66f700fb19</code></td></tr>
+<tr><th>Criteria</th><td>2 / 2 PASSED</td></tr>
+<tr><th>Attempts</th><td>1</td></tr>
+<tr><th>Duration</th><td>1m 4s</td></tr>
+<tr><th>Verifier environment</th><td>rust - rustc 1.99.0 (rustc) (1.99.0)</td></tr>
+<tr><th>Schema</th><td>v9</td></tr>
+<tr><th>Signed</th><td>2026-10-23 06:43:37 UTC</td></tr>
+</table>
+<p class="small">Canonical report digest: <code>d747da284becc5c2c05c80528840ca7f53fffc1882db5d2eb019262fbc405d11</code></p>
+<p class="small">HMAC-SHA256 signature: <code>a49904e25b78fa7e3337cc880978a42b0a0511cf52424f34f2d5690e44872be6</code></p>
+</section>
+<h2>Contract (frozen)</h2>
+<table class="facts"><tr><th>Language</th><td>rust</td></tr>
+<tr><th>Wall budget</th><td>3600s</td></tr></table>
+<table class="results"><thead><tr><th>Criterion</th><th>Title</th><th>Required</th><th>Result</th><th>Duration</th></tr></thead><tbody>
+<tr><td><code>smoke_build</code></td><td>The package builds offline</td><td>yes</td><td class="pass">PASS</td><td>4.8s</td></tr>
+<tr><td><code>test_suite</code></td><td>The unit test suite passes</td><td>yes</td><td class="pass">PASS</td><td>0.2s</td></tr>
+</tbody></table><table class="facts" style="margin-top:8px"><tr><th>Invariants</th><td>accumulator-and-countdown-proved — <code>rung-l0, rung-l2, acc-l2</code><br>accumulator-and-countdown-model-checked — <code>rung-l0, rung-l1, acc-l1-bounded</code></td></tr></table>
+<h2>Plan (frozen)</h2>
+<table class="facts"><tr><th>Objective</th><td>Prove on production that the 0.13.0 proof ladder is live in ONE Job: the same claim is carried by three machine rungs (L0 executable check, L1 bounded model checking via Kani, L2 unbounded proof via Creusot/Why3) inside one attempt, the Job is accepted, and the signed report keeps the three decisions apart and bound to the same source tree, with the bounded rung labelled bounded.</td></tr>
+<tr><th>Plan digest</th><td><code>4073d832f1daa7ecb163e62fff775550a299cdd5701fae3fa2c1ba9b34cdd543</code></td></tr>
+<tr><th>Work items</th><td>3</td></tr></table>
+<table class="results"><thead><tr><th>Work item</th><th>Outcome</th><th>Depends on</th><th>Omission risk</th></tr></thead><tbody>
+<tr><td><code>rung-l0</code></td><td>Both invariants carry a frozen executable check and both run every attempt; the report carries an L0 row per invariant.</td><td>-</td><td>the L0 floor being reported as if it proved the sentence rather than the encoding</td></tr>
+<tr><td><code>rung-l1</code></td><td>The Kani rung runs kani-driver on proofs/ladder_kani.rs in the job container and returns PROVEN within the harness&#39;s own unwind bound, recorded as bounded.</td><td>rung-l0</td><td>a bounded proven being read as a proof for all inputs</td></tr>
+<tr><td><code>rung-l2</code></td><td>The Creusot rung discharges both goals for loop_add and countdown with no trusted item, so the claim holds for ALL inputs and not merely up to a bound.</td><td>rung-l0</td><td>a model axiom or trusted item quietly standing in for the proof</td></tr>
+</tbody></table>
+<table class="results"><thead><tr><th>Scope</th><th>Condition</th><th>Evidence</th></tr></thead><tbody>
+<tr><td><code>rung-l0</code></td><td>Both check argvs exit 0 and print the expected summary line; an invariant without a check is refused BAD_CONTRACT before anything is published.</td><td>behavioral-test</td></tr>
+<tr><td><code>rung-l1</code></td><td>The signed report carries an L1 row naming the kani rung with a bounded proven decision; a missing harness is UNAVAILABLE and must not yield accepted.</td><td>behavioral-test</td></tr>
+<tr><td><code>rung-l1</code></td><td>The bounded decision is labelled bounded wherever it is presented, so a reader cannot mistake it for the unbounded claim.</td><td>inspection</td></tr>
+<tr><td><code>rung-l2</code></td><td>The L2 row records proven with 2/2 goals and an empty trust set; an undecided or unavailable L2 must never yield accepted (DP-13.3).</td><td>proof</td></tr>
+<tr><td><code>overall</code></td><td>The Job reaches accepted on attempt 1 and the signed report carries the three rungs as distinct rows (L0 twice, L1 proven-bounded, L2 proven with 2/2 goals and no model axiom), each naming its rung; exactly one entitlement is spent at the terminal verdict; the report verifies locally with its embedded Ed25519 key.</td><td>proof</td></tr>
+<tr><td><code>overall</code></td><td>The workspace publishes and verifies with no host-side source store and no network: the shim streams the snapshot over HTTPS, the job builds --offline, and creusot-std resolves from the image&#39;s primed cache.</td><td>build</td></tr>
+</tbody></table>
+<h2>Environment</h2>
+<table class="facts">
+<tr><th>Ecosystem</th><td>rust</td></tr>
+<tr><th>Toolchain</th><td>rustc 1.99.0 (rustc)</td></tr>
+<tr><th>Version</th><td>1.99.0</td></tr>
+<tr><th>Fingerprint</th><td><code>930a99e164d11524e508f5f1ac053af4c75c2f8ec130f5c77eba60955292ca8f</code></td></tr>
+</table>
+<div class="hashline">bumpalo  3.20.3  sha256:72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649</div>
+<div class="hashline">cfg-if  1.0.5  sha256:4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600</div>
+<div class="hashline">creusot-std  0.14.0  sha256:b019630da7e585ab18eff475d7ea820474c3fc0cd05a57706facf37f67ab2705</div>
+<div class="hashline">creusot-std-proc  0.14.0  sha256:5a21564d3da8f97ce00e03125d0c3f7c9faedfa68e5d182d88beb25c82c12d25</div>
+<div class="hashline">futures-core  0.3.34  sha256:92d699e522242e69e3003b94ecc1f960f3a5e015aa7c5d7486e65ad01dd94f5e</div>
+<div class="hashline">futures-task  0.3.34  sha256:cd417de3d1d015fc3bfd2b1ea46dfc7bab72ef86f1cc7cc9c78e728b34a6d1fd</div>
+<div class="hashline">futures-util  0.3.34  sha256:0d50a92467f8ba5dd6e3ee5d4bd04d73ab2e4e1c44474a0674821dfce14b79bc</div>
+<div class="hashline">getrandom  0.4.3  sha256:300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099</div>
+<div class="hashline">js-sys  0.3.106  sha256:7883d941dae510fb2d978fc3fe018c71c9e2892fd38854de3e8b92c2e5ad9cc5</div>
+<div class="hashline">libc  0.2.191  sha256:65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a</div>
+<div class="hashline">once_cell  1.21.4  sha256:9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50</div>
+<div class="hashline">pearlite-syn  0.14.0  sha256:e0cada22bee420c97f91bd98f0e1effdd6ef5ab219df0561f35144dcb504ebfd</div>
+<div class="hashline">pin-project-lite  0.2.17  sha256:a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd</div>
+<div class="hashline">proc-macro2  1.0.107  sha256:985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9</div>
+<div class="hashline">quote  1.0.47  sha256:1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001</div>
+<div class="hashline">r-efi  6.0.0  sha256:f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf</div>
+<div class="hashline">rustversion  1.0.23  sha256:cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f</div>
+<div class="hashline">slab  0.4.12  sha256:0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5</div>
+<div class="hashline">syn  2.0.119  sha256:872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297</div>
+<div class="hashline">syn  3.0.9  sha256:d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b</div>
+<div class="hashline">unicode-ident  1.0.27  sha256:a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563</div>
+<div class="hashline">uuid  1.28.0  sha256:7cc1186384beb7dd8eedea376413fd654937285ea6c9cfbb928dc3043ea4b606</div>
+<div class="hashline">wasm-bindgen  0.2.129  sha256:9bb54f33acc68fd454578d9820b0bde1a1a3d17aa17bb7b6595806d02886d409</div>
+<div class="hashline">wasm-bindgen-macro  0.2.129  sha256:2e29d0c35b16e224a7eeb5cd2d25e3e1968fbd65604117b44d3b789d00ee8535</div>
+<div class="hashline">wasm-bindgen-macro-support  0.2.129  sha256:6f501a8bc3719dba86ef8ae4728879c08001bea749eb1333ac5b91e040e2a6b7</div>
+<div class="hashline">wasm-bindgen-shared  0.2.129  sha256:23f0c9c52aa7cd7d77769a4cfe2a9adb1b331f489a41d912ce14513d5ab995c6</div>
+
+<h2>Evidence manifest</h2>
+<div class="attempt">
+<div class="attempt-head">Attempt 1 - passed - 2026-10-23 06:43:37 UTC - wall 1m 4s</div>
+<div class="hashline">source sha256: 5b632f62b9dc40cb6017d79b7de8f26c64da44774205a840f5f836a4d53d76b7</div>
+<div class="hashline">env sha256: 97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</div>
+</div>
+
+<h2>Vulnerability Findings (VEX)</h2>
+<div class="section">
+<p class="placeholder">No vulnerability findings.</p>
+<p class="muted">The full SBOM, VEX and OSCAL are in the signed JSON report.</p>
+<p class="muted">JSON report: <a href="https://falsegreen.com/report/7e1c9441-70ad-4bef-b906-224fccd4bd0d/json">https://falsegreen.com/report/7e1c9441-70ad-4bef-b906-224fccd4bd0d</a></p>
+</div>
+
+<h2>Invariant Checks</h2>
+<p class="small">Invariant checks - which rung of the proof ladder decided each frozen claim (a bounded rung is labelled as one); the full per-attempt rows, including any counterexample trace, are in the signed JSON report:</p>
+<table class="results"><thead><tr><th>Attempt</th><th>Invariant</th><th>Claim</th><th>Rung</th><th>Result</th></tr></thead><tbody>
+<tr><td>#1</td><td>accumulator-and-countdown-proved</td><td>For every input: loop_add returns exactly its bound, and countdown never overshoots its argument (L0 floor + L2 unbounded proof)</td><td>check</td><td class="pass">PROVEN</td></tr>
+<tr><td>#1</td><td>accumulator-and-countdown-model-checked</td><td>The same claim over the same functions, encoded for bounded model checking (L0 floor + L1 Kani)</td><td>check</td><td class="pass">PROVEN</td></tr>
+<tr><td>#1</td><td>accumulator-and-countdown-model-checked</td><td>The same claim over the same functions, encoded for bounded model checking (L0 floor + L1 Kani)</td><td>kani (bounded)</td><td class="pass">PROVEN</td></tr>
+<tr><td>#1</td><td>accumulator-and-countdown-proved</td><td>For every input: loop_add returns exactly its bound, and countdown never overshoots its argument (L0 floor + L2 unbounded proof)</td><td>creusot</td><td class="pass">PROVEN 4 / 4</td></tr>
+</tbody></table>
+
+<h2>Security &amp; Standards</h2>
+<table class="facts"><tr><th>Policy</th><td>smoke-policy</td></tr>
+<tr><th>Policy digest</th><td><code>2a4f12221d0d7cc49b043bece3a66bbb7ac8d241789d2bf8e62185e61c8c8631</code></td></tr>
+<tr><th>Required standards</th><td>nist-ssdf, owasp-samm</td></tr>
+<tr><th>Result</th><td class="pass">SATISFIED</td></tr></table>
+<table class="results"><thead><tr><th>Evidence class</th><th>Required</th><th>Status</th><th>Reasons</th></tr></thead><tbody>
+<tr><td>Dependency/SCA</td><td>yes</td><td class="pass">PASS</td><td></td></tr>
+<tr><td>Static analysis</td><td>yes</td><td class="pass">PASS</td><td></td></tr>
+<tr><td>Secrets</td><td>yes</td><td class="pass">PASS</td><td></td></tr>
+<tr><td>Supply chain</td><td>yes</td><td class="pass">PASS</td><td></td></tr>
+<tr><td>License policy</td><td>yes</td><td class="pass">PASS</td><td></td></tr>
+</tbody></table>
+<p class="small">Attempt security history (the full per-attempt sections are in the signed JSON report):</p>
+<table class="results"><thead><tr><th>Attempt</th><th>Result</th><th>Open findings</th><th>Demonstrated violations</th></tr></thead><tbody>
+<tr><td>#1</td><td class="pass">SATISFIED</td><td>0</td><td>—</td></tr>
+</tbody></table>
+<table class="results"><thead><tr><th>Finding</th><th>Class</th><th>Subject</th><th>Severity</th><th>Rule</th><th>State</th></tr></thead><tbody>
+<tr><td><code>7c7783daff6a7d155286cca0cff6d6680da913d25c6b2f9b8cbaa7796870b15c</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e082958d90818c8fa0d3ced2d0ced3">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d8baadb5a8b9b4b798ebf6eae8f6eb">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>298a3dc87ed455182e39269edd7bcb85eb69d2fdfaed33bb248b55ce4ef400bf</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="214247460c484761100f110f14">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="583b3e3f75313e18697668766d">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>a289092557745e0eefda7242068cc669dc6c675bbd343c368809ac5ba3b7b585</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="294a5b4c5c5a465d045a5d4d691907181d0719">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2e4d5c4b5b5d415a035d5a4a6e1e001f1a001e">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>bd757a2946d6e2f74809027c535554d69bb14965a21b50d1296dd4269251ca4f</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddbeafb8a8aeb2a9f0aea9b9f0adafb2be9dedf3ece9f3ed">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0b3a2b5a5a3bfa4fda3a4b4fda0a2bfb390e0fee1e4fee0">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>476954817da44f19713c85a7f20edf24ebe14e973b2dd69ba13f6555d75a3094</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="50362524252235237d333f223510607e637e6364">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ef8ebeaebecfbedb3fdf1ecfbdeaeb0adb0adaa">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>fee6978da35e4f5c6b8d96529cb65dee180d4cb7666707e503d34f0cfc05ef9a</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb8d9e9f9e998e98c69f8a9880abdbc5d8c5d8df">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="62041716171007114f1603110922524c514c5156">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>d13989ae04350bcd91aced9f34a985abfd8185befd3143d4606db9aa484286f2</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="26405352535443550b53524f4a66160815081512">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="284e5d5c5d5a4d5b055d5c41446818061b061b1c">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>11a15cd49953aaee1017644804d1c3f9e5c0f2dece9366168276bff362fc0d24</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1176746563707f757e7c51213f253f22">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bddad8c9cfdcd3d9d2d0fd8d9389938e">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>77600897c032e28e90244d67c57a80b30db75d51812cb1dbcaa25d4c6fdee41c</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="274d540a545e546717091409161711">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6dcc59bc5cfc5f686988598878680">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>dcd3bb126c93a10db5529e8055e4a5ec5b63c247728b17580a3a061ae4fb457b</code></td><td>Supply chain</td><td></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a3cfc6c7c4c6d1e3938d928d93">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>61aaeff62260c1d967d95422d89a28bc19dd0e5a930b6c9dfd3f031a4999dd7f</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd91949f9ebdcdd3cfd3ccc4cc">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="224e4b404162120c100c131b13">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>06cfdd42abb0c9e4d1075d601a05b33ad12f4e0770c117f758e768a380957b48</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3d52535e58625e5851517d0c130f0c1309">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="355a5b56506a5650595975041b07041b01">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>b8d773cef58aeb5fe067d9ae18794bd0971d08dd6c7d6d4b53712c6f778cdd08</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dfafbabeadb3b6abbaf2aca6b19feff1eeebf1ef">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b5b4e4a5947425f4e065852456b1b051a1f051b">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>d70cae8bcb70f31e4c6b7164e3081c4a5431d743e96c3c24760e8b86e1a6eb7f</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b4c4ddda99c4c6dbded1d7c099d8ddc0d1f4849a869a8583">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bbcbd2d596cbc9d4d1ded8cf96d7d2cfdefb8b9589958a8c">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>83840aaef8208540db5387d039d782fb6638ce97e06bd3f18ce20661ab601f55</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3c4c4e535f11515d5f4e530e7c0d120c120d0c0b">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6a1a18050947070b091805582a5b445a445b5a5d">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>7ec44be48b990fd8c38cb446e9e2cde3c7a02c7b35c9e4514bf7974c9def81eb</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e392968c9786a3d2cdd3cdd7d4">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="78090d170c1d38495648564c4f">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>e5bc87872cb19c9a211895bbde8092b0512f0338b0bde534dade96b289166a5b</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e597c880838ca5d3cbd5cbd5">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="30421d55565970061e001e00">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>aa23aa4807d46c98279b059d07943e631594c35e66ce52182c16b51cf7d43f12</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd8f888e898b988f8e949293bdccd3cdd3cfce">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cfbdbabcbbb9aabdbca6a0a18ffee1ffe1fdfc">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>9bce2547a13eaf182484f1a571040d8cce743c62cb11c3b0adcb3a934d9771ff</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="42312e232002726c766c7370">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="047768656644342a302a3536">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>172012ad51c91dc3a2e8a3a4c30026893420917739d047e5dc8918d5af26e93e</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cab9b3a48af8e4fae4fbfbf3">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3b4842557b09150b150a0a02">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>4cf5b83b5e47207b200be1c28233d037d4896752b572d0edb52975dc429e0b1c</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3043495e70031e001e09">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b2c1cbdcf2819c829c8b">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>cdf512d7b7b4b6aad7b87252ee1d8aa13deced196dc20e86af4c693914775db0</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e3968d8a808c8786ce8a87868d97a3d2cdd3cdd1d4">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0673686f656962632b6f6263687246372836283431">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>9582d4f239f7864b3b3b0fe0e400cb3bef7b6e4cafa8d4ffcf46bf2037b8b2d1</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="304545595470011e02081e00">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5e2b2b373a1e6f706c66706e">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>795f67b52a5a715e44751a89cd6e3eebe56440405d5b50d45fd590265e8b070c</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd8a9c8e90d09f9493999a9893bdcdd3cfd3cccfc4">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0c7b6d7f61216e6562686b69624c3c223e223d3e35">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>cdb73c713e3e48e4825973e061b272376c716442e995252af01cd807cb800f5c</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2f584e5c42024d46414b484a4102424e4c5d406f1f011d011e1d16">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790e180a14541b10171d1e1c175414181a0b163949574b57484b40">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>0e7c814d552fbfcb44b8a3d5bf843864865499653a32ab9c8cfca4b3b5c696ed</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="334452405e1e515a5d5754565d1e5e5250415c1e404643435c414773031d011d02010a">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="047365776929666d6a6063616a29696567766b29777174746b767044342a362a35363d">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>9c56e78576d675ae7a5b5e0eb53a91c8704424a30d7257fcd6d017493453ecf3</code></td><td>Supply chain</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="671006140a4a050e09030002094a140f06150203275749554956555e">[email&#160;protected]</a></td><td>—</td><td><code>syft/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d9aeb8aab4f4bbb0b7bdbebcb7f4aab1b8abbcbd99e9f7ebf7e8ebe0">[email&#160;protected]</a></code></td><td>OPEN</td></tr>
+<tr><td><code>112eba865d6e313d6f23bd9b4eb1bb1740fb2f837c273ec7124e835cc0da005d</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ffdeaf2effef3f0dfacb1adafb1ac">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>6dc467fded10560a16e1a85aae690fdd4d560ab3a7854ff858b0790cbced7ab2</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="533035347e3a3513627d637d66">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>19e2b4591ae75b11535dd3adef8e6a0ee04d76d24038de6751a8b7537b96d5aa</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7417061101071b005907001034445a45405a44">[email&#160;protected]</a></td><td>—</td><td><code>license/LGPL-2.1-or-later</code></td><td>OPEN</td></tr>
+<tr><td><code>3cd2d76a6803b9cba3f213e24939049e38bd414067a7394974c19fdacc0fc663</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b48594e5e58445f06585f4f065b5944486b1b051a1f051b">[email&#160;protected]</a></td><td>—</td><td><code>license/LGPL-2.1-or-later</code></td><td>OPEN</td></tr>
+<tr><td><code>c6aeb45eaedd541244c476c372e812d3e20d16010265ee4571a3763242392da2</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="046271707176617729676b766144342a372a3730">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>301d6620277659895b68463d36b4239436b98a7dc028f4d60d5d04c4b334f741</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0462717071766177297065776f44342a372a3730">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>2df66b072bb07a9e9a837604f76f68aa7c29f5388ae32a5c9be71b9858ac5f8c</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a3c5d6d7d6d1c6d08ed6d7cacfe3938d908d9097">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>e8a05789f8c7ca2d56115d6721959efab7dee18603092589b99cc0603b4e4931</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="94f3f1e0e6f5faf0fbf9d4a4baa0baa7">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>93859812ef1acb1ac4078d220de712708a6509b708dff095c708eb414e618cbe</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="412b326c32383201716f726f707177">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>90ce55778cfac3e0f098de0b24f5e2e035d65d0b28f7c09647bf2a433f0ced65</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd91949f9ebdcdd3cfd3ccc4cc">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>72d443496cd2f5431e7f4347680d3790fed414966236ac9d635539cddfc310d7</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="412e2f22241e22242d2d01706f73706f75">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>a0fc8e8d71ece792a231095f168ab0c7cffca251fcacce43289829e77fb75ef5</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6c1c090d1e00051809411f15022c5c425d58425c">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>f9bf8d0cc7852f11cf6152dec7595b43e8a75d0f5fed01aefb19963f05a61094</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec9c8582c19c9e8386898f98c180859889acdcc2dec2dddb">[email&#160;protected]</a></td><td>—</td><td><code>license/Apache-2.0 OR MIT</code></td><td>OPEN</td></tr>
+<tr><td><code>875825c505903cfb9b602a23e74f0edf7eb1621583ed9e583c410103af3d402d</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e696948985cb8b87859489d4a6d7c8d6c8d7d6d1">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>d94338e54aeaf7fdb9048fc5ec3defa5504f99aab2210cec5156b23ac309f0fd</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="96e7e3f9e2f3d6a7b8a6b8a2a1">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>73c9c8606efa4200ec16f7e1121489b31dba86fe5c2093dd9907af8d742ee0d3</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="66144b03000f265048564856">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0 OR LGPL-2.1-or-later</code></td><td>OPEN</td></tr>
+<tr><td><code>70f4a38d76116971c51011dab9ec757f6973bf8279d2ec62777f3f1bf9d0d9c4</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddafa8aea9abb8afaeb4b2b39decf3edf3efee">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>803d1a04fde4297e52e15eafb9f7045b38466b7ac9de09d53b23a5b801788df3</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5c6d9d4d7f5859b819b8487">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT</code></td><td>OPEN</td></tr>
+<tr><td><code>88cca70db371b2eb5db003aa26dca694e18d04d14f10fea6bb7b77c9d8a5915c</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="75060c1b35475b455b44444c">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>15bedfcd4863b93f38b7d0bc2bd56e41531843d5c2953974ebb947a686aebc48</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790a0017394a57495740">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>10ebd1e19e81d1b55e547bcf583a4da0d086d5d47b86817360bc2d6fa1daecc8</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7b0e151218141f1e56121f1e150f3b4a554b55494c">[email&#160;protected]</a></td><td>—</td><td><code>license/(MIT OR Apache-2.0) AND Unicode-3.0</code></td><td>OPEN</td></tr>
+<tr><td><code>f7242a40ee73e10ece190b2216fb89d082f1503d7eedadcb5949eefcfec5c507</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2d585844496d1c031f15031d">[email&#160;protected]</a></td><td>—</td><td><code>license/Apache-2.0 OR MIT</code></td><td>OPEN</td></tr>
+<tr><td><code>86e8295bb7e74e6094ed25146fb85276095476aedf328c258f22d7928a971e28</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="572036243a7a353e3933303239176779657966656e">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>a8540d02003fc3df4b8bc38b7fb3f9d162f939ac2ea1c4b4401bd727c55443f2</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d3a2c3e20602f2423292a282360202c2e3f220d7d637f637c7f74">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>ae94b33243d55cba9685b0da91cf31941957149cbef3cfb8a8b3c47ec027124c</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="324553415f1f505b5c5655575c1f5f5351405d1f414742425d404672021c001c03000b">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+<tr><td><code>b649102b4e27d450d6253da4c54818d3ecc38316817fde3de4f3adf5177f1025</code></td><td>License policy</td><td>pkg:cargo/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e39482908ece818a8d8784868dce908b82918687a3d3cdd1cdd2d1da">[email&#160;protected]</a></td><td>—</td><td><code>license/MIT OR Apache-2.0</code></td><td>OPEN</td></tr>
+</tbody></table>
+<div class="small"><b>Witnesses (tool provenance)</b></div>
+<div class="hashline">osv-scanner 2.7.0 (Dependency/SCA) — invocation sha256: 499d67bb5ed19d03af1455330a60dcfb1b7c402e3d446d064f8e831bea3b207c — 97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</div>
+<div class="hashline">semgrep 1.181.0 (Static analysis) — invocation sha256: 02ce68f0d50374d5a68fa61ad1e8c7af825492b9aa70b22821826e0a91248ca6 — 97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</div>
+<div class="hashline">gitleaks 8.30.1 (Secrets) — invocation sha256: 3be7080ed222d82157f00633303d10d6b2fddd48d796212377280f00033e5a55 — 97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</div>
+<div class="hashline">syft 1.54.1 (Supply chain) — invocation sha256: 054bf91260852f2ec4ab00cc7cad805442537a664ed1112893125fb7accf26e3 — 97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</div>
+<div class="hashline">dependency-manifest 1 (License policy) — invocation sha256: 93565424d7bbf5a847116214567e76faeda74b99800f8e479b6c5464181187b8 — 97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</div>
+
+<table class="facts">
+<tr><th>Standard</th><td>NIST SP 800-218 / SSDF 1.1 SP 800-218 Rev 1 (SSDF 1.1)</td></tr>
+<tr><th>Profile</th><td><code>nist-ssdf</code> — content sha256: <code>31f322fc36ae0be815dbb6d4348afe9aea733ad1f63cf441b01c3fbe51c7f282</code></td></tr>
+<tr><th>Posture</th><td class="pass">SATISFIED</td></tr>
+<tr><th>Coverage note</th><td>v1 maps PG 1-13, PS 1-4, PV 1-8, RT 1-4 (29 of 35 practices): every mapped practice has a defensible FalseGreen evidence class. Organizational requirements are out of scope (dropped from the projection — FalseGreen verifies the code, not the organization). PV 9-14 ship with the v2 profile.</td></tr>
+</table>
+<table class="results"><thead><tr><th>Requirement</th><th>Status</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>Use external components in a secure manner</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945, 9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f</td></tr>
+<tr><td>Provide toolchain support</td><td class="pass">SATISFIED</td><td>97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</td></tr>
+<tr><td>Instrument the build and release processes</td><td class="pass">SATISFIED</td><td>97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9, 8ebd9047969b6f80fd3f7f665601bc99746b930f91c43f9b9e93644ef61a13d0</td></tr>
+<tr><td>Protect the software from unauthorized access and tampering</td><td class="pass">SATISFIED</td><td>5b632f62b9dc40cb6017d79b7de8f26c64da44774205a840f5f836a4d53d76b7, 8ebd9047969b6f80fd3f7f665601bc99746b930f91c43f9b9e93644ef61a13d0</td></tr>
+<tr><td>Protect all forms of code from unauthorized access and tampering</td><td class="pass">SATISFIED</td><td>5b632f62b9dc40cb6017d79b7de8f26c64da44774205a840f5f836a4d53d76b7, 9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f</td></tr>
+<tr><td>Generate and protect software bill-of-materials (SBOM)</td><td class="pass">SATISFIED</td><td>9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f</td></tr>
+<tr><td>Verify the integrity of all external software releases</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945, 9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f</td></tr>
+<tr><td>Store all software releases in a trusted repository</td><td class="pass">SATISFIED</td><td>9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f</td></tr>
+<tr><td>Archive all software releases</td><td class="pass">SATISFIED</td><td>9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f</td></tr>
+<tr><td>Use a secure compiler, linker, and related tools</td><td class="pass">SATISFIED</td><td>97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</td></tr>
+<tr><td>Compile and link code without malicious or insecure code</td><td class="pass">SATISFIED</td><td>8ebd9047969b6f80fd3f7f665601bc99746b930f91c43f9b9e93644ef61a13d0, 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945</td></tr>
+<tr><td>Review and resolve issues in third-party components</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945</td></tr>
+<tr><td>Review and resolve code errors</td><td class="pass">SATISFIED</td><td>8ebd9047969b6f80fd3f7f665601bc99746b930f91c43f9b9e93644ef61a13d0</td></tr>
+<tr><td>Generate software release artifacts from trusted sources</td><td class="pass">SATISFIED</td><td>9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f, 97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</td></tr>
+<tr><td>Analyze identified vulnerabilities</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945</td></tr>
+<tr><td>Identify and prioritize vulnerabilities</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945, 2a4f12221d0d7cc49b043bece3a66bbb7ac8d241789d2bf8e62185e61c8c8631</td></tr>
+<tr><td>Track, remediate, and report on vulnerabilities</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945</td></tr>
+</tbody></table>
+<table class="facts">
+<tr><th>Standard</th><td>OWASP SAMM SAMM 2.0</td></tr>
+<tr><th>Profile</th><td><code>owasp-samm</code> — content sha256: <code>cfaaa920c4ebf78058cbc6e03dd1f6d194e9aeaf8bb9e382ff0124a59b4d799f</code></td></tr>
+<tr><th>Posture</th><td class="pass">SATISFIED</td></tr>
+<tr><th>Coverage note</th><td>v1 maps all 28 practices (PO 1-6, GV 1-3, DS 1-4, IM 1-5, VA 1-5, OP 1-5). SAMM is process-heavy: organizational practices are out of scope (dropped from the projection — never manufactured). Practice titles follow the SAMM 2.0 catalog; corrections ship as v2.</td></tr>
+</table>
+<table class="results"><thead><tr><th>Requirement</th><th>Status</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>Managing Third-Party Risks</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945, 9e4efacc9f0d496ac27f901c1b5828e56ef1835e67140d10806586c77793972f</td></tr>
+<tr><td>Applying Secure Configuration</td><td class="pass">SATISFIED</td><td>97fe3ba4b92136b002097559a67ed8742777d20a03c0c474ba36df767c3d20d9</td></tr>
+<tr><td>Performing Static Application Testing</td><td class="pass">SATISFIED</td><td>4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945</td></tr>
+<tr><td>Performing Dynamic Application Testing</td><td class="pass">SATISFIED</td><td>8ebd9047969b6f80fd3f7f665601bc99746b930f91c43f9b9e93644ef61a13d0</td></tr>
+<tr><td>Performing Application Security Testing</td><td class="pass">SATISFIED</td><td>8ebd9047969b6f80fd3f7f665601bc99746b930f91c43f9b9e93644ef61a13d0</td></tr>
+</tbody></table>
+
+<h2>Exports</h2>
+<div class="section">
+<div class="muted" style="margin-bottom:6px">Full content is embedded in the signed JSON report (schema v6).</div>
+<div class="hashline">spdx-3.0  sha256:a0f2b732353f2a21c8af96fcb1d2745ca871b257482a0afc2f8997bdabfb7f6c  report-artifact:sbom:spdx-3.0</div>
+<div class="hashline">cyclonedx-1.7  sha256:3202f4c1ec1ae246f551822c6110a347f5f948f6ae57af73036b2816f1121738  report-artifact:sbom:cyclonedx-1.7</div>
+<div class="hashline">oscal-assessment-results-1.1.2  sha256:e93e642153cdbcc3cd55a595128645f1f306e58816e8497699f117b76a067722  report-artifact:oscal:assessment-results</div>
+<div class="hashline">cyclonedx-1.7-vex  sha256:f06e255826909e5cacda41f8d6222660a9e4090d9881ed709e6427cf6f90067c  report-artifact:vex:cyclonedx-1.7-vex</div>
+</div>
+
+
+<h2>Signature</h2>
+<p>This report is cryptographically signed: Ed25519 over the canonical report content. The public key is embedded in the report — verification is offline and registry-free (<code>falsegreen verify-report</code>).</p>
+<div class="hashline">key id: fg-report-9fc1a2c5-134c-4ca1-a0f2-56b2d1bcde67-20261018-1</div>
+<div class="hashline">ed25519 public key: ie4eQdY1lt7O5aCCQzO+/192Yzc4pLQsGyVNqSKtlmA=</div>
+<div class="hashline">ed25519 signature: TnhfGOKWU/z9ZsU1qyRXpAVGPLm8x0+Q5tMvmocrFkpzClFDDgYQs9b/FdaHCkX6+y8TYiT2iPR5bK3BTfZABQ==</div>
+<div class="hashline">digest: d747da284becc5c2c05c80528840ca7f53fffc1882db5d2eb019262fbc405d11</div>
+
+<div class="hashline">digest: d747da284becc5c2c05c80528840ca7f53fffc1882db5d2eb019262fbc405d11</div>
+<p class="small" style="margin-top:10mm; border-top:1px solid #e3e9eb; padding-top:3mm">
+This is a presentation of the signed canonical evidence (the JSON artifact). It is not an audit certificate. - FalseGreen v0.13.0
+</p>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body></html>
