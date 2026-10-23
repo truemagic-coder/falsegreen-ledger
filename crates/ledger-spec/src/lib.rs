@@ -9,6 +9,7 @@
 //! * L1 (Kani) checks the real code against the SAME sentence over the FULL
 //!   u64 domain — an unguarded `prev + 1` that panics or wraps at the ceiling
 //!   is a VIOLATION of "never wraps", with a concrete counterexample.
+//!
 //! So the guarded spec and the unguarded implementation cannot both be
 //! quietly wrong: the ladder itself is what forces the code to honour the
 //! guard the spec states.
