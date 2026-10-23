@@ -971,3 +971,22 @@ artifact:
 Upstream fix target: 0.14.0 (F25) — re-derive each attempt against ITS OWN
 source identity, and keep demonstrated-violation labels + findings in the
 attempt's own section. This Job is the reproduction corpus.
+
+### Run C close (`15201f76`) — terminal insufficient_evidence exactly as designed; paid job 3/10
+8/8 attempts `insufficient`, one entitlement (`jobent_57f13c2b…` consumed at
+terminal). Signed v9 VERIFIED keyless. Ladder evidence in the artifact:
+kani rung `undecided` ×8 (compile-killed harness — the E0432 tail rides the
+row), creusot rung `unavailable` ×8 (ghost target, goals 0/0, "No files to
+prove"). The decisive proof: on attempt 8 the five security classes were
+GENUINELY satisfied (final attempt, subject matched — `satisfied: true`) and
+the verdict was STILL insufficient_evidence because the frozen proof rungs
+could not decide. accepted is structurally unreachable on unknowable rungs.
+
+Minor vocabulary note (docs, not a defect): a Kani harness that cannot
+compile yields rung `undecided`, not `unavailable`; the compile error tail
+distinguishes them for the auditor. `docs('proof')` could state the
+decision vocabulary (proven/undecided/violated/unavailable) explicitly.
+
+Re-confirmed for attempts 1–7 (already #27/F25): post-repair the derived
+per-attempt security rows read insufficient_evidence for every class — the
+final attempt's rows are honest, earlier attempts' are not.
