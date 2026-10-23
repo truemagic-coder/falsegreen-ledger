@@ -990,3 +990,76 @@ decision vocabulary (proven/undecided/violated/unavailable) explicitly.
 Re-confirmed for attempts 1–7 (already #27/F25): post-repair the derived
 per-attempt security rows read insufficient_evidence for every class — the
 final attempt's rows are honest, earlier attempts' are not.
+
+## Free-probe battery (no spend) — 10/10 refusal surfaces healthy; five new findings
+Driven through the installed 0.13.0 shim (MCP stdio + CLI), /tmp trees only.
+
+HEALTHY (measured): verify-report tamper battery 5/5 (1-byte Ed25519 flip →
+"signature invalid (report modified)"; VALID-VARIANT verdict flip Accepted→
+Failed → caught (the canonical digest covers the verdict); stripped-fields →
+correct pre-v5 message; HTML input → clean NOT_A_JSON_REPORT). Contract
+abuse at validate: unknown top-level key, typo table `[[criterian]]`,
+unknown key inside `check` — all BAD_CONTRACT with serde naming the
+expected fields; invariant-without-check BAD_CONTRACT (0.11.0 ENFORCE);
+`kani = "../../etc/passwd"` refused — "escapes the workspace root"
+(containment implemented); frozen lean + cobol refused naming the
+supported set. Plan abuse: cycle refused AT DRAFT ("dependencies contain a
+cycle"); duplicate work-item id refused; bogus security class refused at
+draft (enum names the 5 valid classes); policy-digest tamper refused with
+BOTH digests ("0000… vs computed 8b1a… — the frozen policy was edited or
+swapped"). Cancel→refund: create_job → cancel mid-verifying →
+closed_pre_execution + entitlement FULL refunded + verify_job then
+NOT_VERIFIABLE. NO_FROZEN_PLAN create refusal clean. #15 VERIFIED FIXED:
+client SCA on a smallvec=0.6.13 pin returns real OSV rows (CRITICAL/HIGH/
+MODERATE + summaries) — pre-0.11.0 the querybatch parse was always empty.
+charged_at NOW WRITTEN at spend (DB rows match the MCP spends ledger to the
+microsecond; refund row keeps it NULL). MCP account_usage = the full view
+(45 purchased / 32 spent / 7 refunded / 6 available, per-job verdicts +
+report links, running/queued). docs('proof') carries the full decision
+vocabulary (PROVEN/VIOLATED/UNDECIDED/UNAVAILABLE) and docs('security')
+states the five MANDATORY classes — the in-surface reference matches the
+shipped behavior.
+
+### #28 — `repair_job` without an explicit workspace silently targets the PINNED workspace (possibly a months-old unrelated tree), and validates ITS contract before the Job state
+Unqualified repair on a TERMINAL job returned `BAD_CONTRACT: invariant
+"canonical bytes are stable" carries no machine check` — about
+`~/.config/falsegreen/workspace.toml`'s pin (`/mnt/…/smoke-inv`, an Oct-12
+smoke tree), not about my Job or my workspace. Two compounding problems:
+(a) the default resolves a stale pin silently — the error never names the
+path it validated; (b) order — contract validity is checked BEFORE state,
+so the user of a terminal job learns about an unrelated tree's shape
+instead of `NOT_REPAIRABLE`. Fix: default to the task's BOUND workspace
+(the server already knows it — cf. F26), and state-check before
+contract-check; always echo the resolved workspace path in the error.
+With the explicit workspace the refusal is correct: NOT_REPAIRABLE.
+
+### #29 — `falsegreen account` CLI refuses ("authentication endpoint is invalid") while MCP `account_usage` works on the same session — and exits 0
+`falsegreen status`: authenticated, session accepted. MCP tool: full view.
+CLI: one refusal line, **exit code 0** — a script cannot detect it. The
+0.11.0 account surface is MCP-complete, CLI-broken. Fix the CLI endpoint
+path + non-zero exit on refusal.
+
+### #30 — `falsegreen status` lists 10 docs topics; the shim ships 12 (security, proof missing)
+Self-describing output drifted from the tool surface it documents (the F8
+contract for the CLI itself).
+
+### #31 — refused `create_job` error bodies carry a job_id that was never created
+`NO_FROZEN_PLAN … "job_id": "32147ea8-…"` — the shim pre-generates the id
+and echoes it on refusals; chasing it returns JOB_NOT_FOUND. Omit the id
+when no Job exists (or mark it as not-created).
+
+### #32 — `falsegreen security scan` mixes machine JSON with trailing human text
+stdout = a JSON doc followed by "SECRET_REFUSED — the publish is blocked…"
+line: breaks naive `json.load`; and the command takes a positional PATH
+while sibling commands take `--workspace`. Cosmetic/consistency.
+
+### Campaign re-confirmations
+- F28 STILL LIVE: `job_events` = 0 rows after 5 new Jobs (create/cancel/8
+  repairs mint nothing).
+- F29 N/A for new Jobs (customer_id present; all campaign reports verified
+  keyless).
+- supersede live probe SKIPPED deliberately: it consumes a whole paid Job
+  (budget discipline); its refusal semantics (mid-repair
+  CANNOT_SUPERSEDE) are canary-covered.
+- NO_SOURCE_CHANGE / CONTRACT_CHANGED repair edges not re-run (need a
+  repairing Job; both have live-canary legs + Oct-12 prod proof).
