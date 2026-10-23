@@ -279,9 +279,20 @@ MEASURED pre-flight (job image, `falsegreen-verify run`, zero spend):
   parse machinery) → rung UNAVAILABLE → the rung wall rides
   `check.timeout_seconds`; raised to 900, cost being measured.
 - Creusot spec E0308: a u64 clause `seq == prev + 1` is `Int` in Pearlite —
-  the machine-arithmetic operator `prev +@ 1` is required (undocumented).
+  SUPERSEDED by the grammar probe: `+@` and `<==>` are NOT v0.14 grammar
+  ("expected term"); the winning shape is machine `+` with a literal suffix
+  (`seq == prev + 1u64`) inside the nested equality — issue #23.
 - `creusot-rustc` compiles the WHOLE multi-crate workspace (serde/ed25519/
   clap all check) — L2 scales to real workspaces, not just fixture crates.
+
+**RUN A CLOSED (`68239ac0`, paid job 1/10)** — exactly the designed arc:
+attempt 1 `failed` (91 s) on the Kani counterexample (real `check_link`
+overflow), repair = `checked_add` (source-only, new source `6483cf5a…`),
+attempt 2 `accepted` (87 s) with kani `proven` + creusot `proven` 1/1 + all
+L0 green. One spend at the terminal verdict; both attempts' rung rows and the
+attempt-1 counterexample ride the signed v9 report forever; keyless local
+`verify-report` VERIFIED. Findings #23–#26 filed. Signed copy:
+`reports/runA-68239ac0.json`.
 
 **Run B — the 0.11.0 verdict gates (1 Job).** Plan security policy opts into
 `allowed_licenses` (exact-SPDX allow-set derived from this repo's own witness
