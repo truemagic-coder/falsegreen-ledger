@@ -268,7 +268,6 @@ dependencies = [
  "ed25519-dalek",
  "falsegreen-ledger-core",
  "hex",
- "list-my-licence",
  "rand",
  "serde_json",
  "tempfile",
@@ -413,12 +412,6 @@ name = "linux-raw-sys"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
-
-[[package]]
-name = "list-my-licence"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2115f69225891ae85b23079492e32bc9605b6ce534148b6637f1f8ab2f684b8b"
 
 [[package]]
 name = "memchr"
