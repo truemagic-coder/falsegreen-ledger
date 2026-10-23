@@ -56,7 +56,7 @@ impl Record {
 
     /// True when this record links to `prev` (hash match + no sequence gap).
     pub fn check_link(&self, prev: &Record) -> bool {
-        self.prev_hash == prev.hash && self.event.seq == prev.event.seq + 1
+        self.prev_hash == prev.hash && ledger_rules::links(self.event.seq, prev.event.seq)
     }
 
     pub fn check_seq_start(&self, expected_seq: u64) -> bool {

@@ -1,0 +1,9 @@
+[package]
+name = "ledger-spec"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "The proof ladder L2 (Creusot) encoding of the chain-link arithmetic: the spec lives IN the crate and rides the source hash; attributes are inert under plain cargo"
+
+[dependencies]
+creusot-std = "0.14.0"

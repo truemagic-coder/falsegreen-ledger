@@ -133,7 +133,7 @@ impl Ledger {
     }
 
     pub fn shard_path(&self, index: u32) -> PathBuf {
-        self.root.join(format!("shard-{:06}.jsonl", index))
+        self.root.join(ledger_rules::shard_name(index))
     }
 
     /// Shard indices present on disk, ascending.
@@ -141,13 +141,7 @@ impl Ledger {
         let mut out = Vec::new();
         for entry in fs::read_dir(&self.root)? {
             let name = entry?.file_name().to_string_lossy().to_string();
-            let Some(rest) = name.strip_prefix("shard-") else {
-                continue;
-            };
-            let Some(stem) = rest.strip_suffix(".jsonl") else {
-                continue;
-            };
-            if let Ok(index) = stem.parse::<u32>() {
+            if let Some(index) = ledger_rules::shard_index(&name) {
                 out.push(index);
             }
         }

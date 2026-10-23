@@ -104,3 +104,31 @@ name = "the threat model states exactly what verify proves"
 description = "given an uncorrupted copy of the sealed shards and a known public key, verify proves content integrity, ordering and completeness within a shard, seal integrity, cross-shard continuity, and the compaction boundary; it does not prove: total replacement by a private-key holder with a re-signed shard, unanchored pre-seal history, shard loss (detected, not repaired), the truthfulness of written events, or membership of the policy file in the signed boundary"
 plan_refs = ["contract-invariants.a-scope-stated"]
 check = { argv = ["grep", "-qi", "threat model", "README.md"], expect_exit = 0, timeout_seconds = 30 }
+
+# ── 0.13.0 adversarial campaign, run A: the proof ladder over REAL code ────
+# The two claims below are decided by ALL applicable rungs, on code the
+# shipped binary actually executes (extracted dependency-free into
+# `ledger-rules`; the L2 encoding is `ledger-spec`): L0 executable check +
+# L1 Kani over the full u64 domain + (chain claim) L2 Creusot over the
+# guarded spec. The chain claim is deliberately stated as the STRONGER
+# sentence ("never wraps") than the shipped arithmetic ("prev + 1",
+# unguarded): if the machine disproves the sentence, the REPAIR LOOP fixes
+# the code — the frozen claim stays. That is the campaign's point.
+[[invariant]]
+name = "shard naming is total, fixed-width, and order-preserving on the documented index domain"
+description = "for every u32 shard index up to 999_999 the store name shard-NNNNNN.jsonl round-trips back to the exact index through the directory-scan parser, has fixed width 19, and lexicographic name order equals numeric index order (which is what makes the store's sorted scan sound)"
+plan_refs = ["ladder.a-naming"]
+check = { argv = ["cargo", "test", "-p", "ledger-rules", "--offline", "--", "shardname::"], expect_exit = 0, timeout_seconds = 300, expect_stdout_contains = ["2 passed;", "0 failed"] }
+kani = "proofs/shardname_kani.rs"
+
+[[invariant]]
+name = "chain linking is exact successor arithmetic and never wraps at the u64 ceiling"
+description = "record N links to record N-1 iff prev_hash equals record N-1's hash AND seq is the exact u64 successor of record N-1's seq; the successor is never taken modulo the u64 ceiling — no seq may link past u64::MAX (the chain cannot wrap) — and on the guarded domain (prev below u64::MAX) the predicate is exactly seq == prev + 1"
+plan_refs = ["ladder.a-links"]
+check = { argv = ["cargo", "test", "-p", "ledger-rules", "--offline", "--", "links::"], expect_exit = 0, timeout_seconds = 900, expect_stdout_contains = ["2 passed;", "0 failed"] }
+kani = "proofs/links_kani.rs"
+
+[invariant.creusot]
+targets = ["links"]
+provers = ["alt-ergo", "z3"]
+timeout_ms = 30000

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/falsegreen-ledger-core", "crates/falsegreen-ledger"]
+members = ["crates/falsegreen-ledger-core", "crates/falsegreen-ledger", "crates/ledger-rules", "crates/ledger-spec"]
 [workspace.package]
 version = "0.1.0"
 edition = "2021"

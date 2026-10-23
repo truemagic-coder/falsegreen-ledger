@@ -12,6 +12,7 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 ed25519-dalek = { workspace = true }
 
+ledger-rules = { path = "../ledger-rules" }
 [dev-dependencies]
 rand = { workspace = true }
 tempfile = { workspace = true }
