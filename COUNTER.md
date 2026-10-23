@@ -9,3 +9,4 @@ with an unchanged workspace is refused NO_SOURCE_CHANGE).
 - attempt 4: counter 3
 - attempt 5: counter 4
 - attempt 6: counter 5
+- attempt 7: counter 6
