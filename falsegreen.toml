@@ -128,6 +128,6 @@ check = { argv = ["cargo", "test", "-p", "ledger-rules", "--offline", "--", "lin
 kani = "proofs/links_kani.rs"
 
 [invariant.creusot]
-targets = ["links"]
+targets = ["verif/ledger_spec_rlib/links"]
 provers = ["alt-ergo", "z3"]
 timeout_ms = 30000

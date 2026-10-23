@@ -17,10 +17,10 @@ extern crate creusot_std;
 use creusot_std::prelude::*;
 
 /// The guarded successor predicate: proven for every `prev` below the u64
-/// ceiling (an unguarded `prev + 1` here would carry an overflow obligation
-/// no prover closes — the docs('proof') rule, applied deliberately).
+/// ceiling. Measured on Creusot v0.14: the `requires` guard is what closes
+/// the body's overflow obligation — without it, `vc_links` stays open.
 #[requires(prev < 18446744073709551615u64)]
-#[ensures(result <==> (seq == prev +@ 1))]
+#[ensures(result == (seq == prev + 1u64))]
 pub fn links(seq: u64, prev: u64) -> bool {
     seq == prev + 1
 }
