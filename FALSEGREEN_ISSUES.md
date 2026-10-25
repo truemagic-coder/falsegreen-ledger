@@ -1177,22 +1177,21 @@ tree that stores its own reports.
   with `BAD_CONTRACT` naming the `[[criterion]]` migration (this repo's old
   file would not have been accepted).
 
-### #37 — the account charge line prints `0.00 usd` for a purchase whose price is on file (money surface, display)
-`falsegreen account` printed for this Job's charge:
-`2026-10-25T22:05:38.545545Z — 0744390a-… — 0.00 usd (source: polar_purchase)`
-while the entitlement row carries `catalog_amount_cents = 299900`,
-`paid_amount_cents = 0`. The shim's formatter DOES have an honest branch —
-a missing `amount_cents` renders "amount on file" (`lib.rs:351`) — but the
-legacy rows store integer `0`, not NULL, so they render as a real price of
-zero. Prod: 44 of 45 `polar_purchase` entitlements have
-`paid_amount_cents = 0` (all created 10-13…10-23, i.e. pre-0.14.0-deploy;
-the 0.14.0 webhook/reconcile paths DO write the real amount —
-`webhook.rs:875`, `reconcile.rs:413` — the first post-deploy purchase will
-carry it). D16 deliberately annotates rather than rewrites history, so the
-display must stop laundering it: treat `0` with a non-zero catalog amount as
-"not recorded (catalog 2999.00)", and never WRITE 0 for an unknown payment
-(NULL is the honest value). Same class of mistake the 0.10.0 fail-closed work
-killed in verdicts: a zero where the truth is "unknown".
+### #37 — WITHDRAWN (user ruling 2026-10-25): the $0.00 charge is real, not a display bug
+I filed this because `falsegreen account` printed
+`… — 0.00 usd (source: polar_purchase)` for this Job while the entitlement
+row carried `catalog_amount_cents = 299900`, and 44 of 45 `polar_purchase`
+entitlements have `paid_amount_cents = 0`. **Wrong diagnosis.** The user runs
+these smoke Jobs on a **100 % discount code**, so the amount actually paid IS
+zero — the surface printed the truth. Corroboration independent of my reading:
+the boot-time Polar reconciliation compares each stored `paid_amount_cents`
+against the provider's own `order.total_amount` and reports identity conflicts
+(`reconcile.rs:383`); the 0.14.0 deploy logged **44 reconciled / 0 conflicts**,
+i.e. Polar itself says those 44 orders totalled 0. `catalog_amount_cents =
+299900` is the list price, `paid_amount_cents` is what was paid — the pair is
+exactly the right model for a discounted checkout.
+No action. (If anything is ever worth doing it is display sugar — showing
+"list 2999.00 · paid 0.00 (discount)" — not a correctness fix.)
 
 ### Smoke-process note — the session's MCP shim process predated the reinstall (NOT a product defect)
 The `falsegreen_get_report` result for this Job carried the PRE-W8 link pair
