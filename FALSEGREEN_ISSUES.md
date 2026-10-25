@@ -1063,3 +1063,156 @@ while sibling commands take `--workspace`. Cosmetic/consistency.
   CANNOT_SUPERSEDE) are canary-covered.
 - NO_SOURCE_CHANGE / CONTRACT_CHANGED repair edges not re-run (need a
   repairing Job; both have live-canary legs + Oct-12 prod proof).
+
+---
+
+## 0.14.0 W9 marketing run — 2026-10-25 (the published 0.14.0 shim; one paid Job)
+
+Setup per the W9 ruling: the ten 0.11.0-era `[[invariant]]` claims that
+"proved" themselves with a mechanical `check` are GONE (not migrated to
+criteria). The contract keeps the mechanical floor as `[[criterion]]` rows
+(build / full test suite / rustfmt) and carries exactly ONE claim — "chain
+linking is exact successor arithmetic and never wraps at the u64 ceiling" —
+with two real encodings: `kani = "proofs/links_kani.rs"` (L1, bounded, the
+shipped `ledger_rules::links` bytes) and `[invariant.creusot]
+targets = ["verif/ledger_spec_rlib/links"]` (L2, unbounded, the guarded
+Pearlite spec in `crates/ledger-spec`).
+Pre-flight was FREE (no spend): `falsegreen-verify run` inside the 0.14.0 job
+image (ea8e0f5cf4fc) over the same tree → verdict `passed`, kani **proven**
+(1.07 s), creusot **proven** goals 1/1 (38.6 s); the SCA witness
+(osv-scanner 2.7.0, snapshot `osv-dev-20261024-4576ab68`) → **0 vulnerable
+packages**. Job `0744390a-a793-4c99-9df7-0c948d247991`.
+
+OUTCOME (attempt 1, one spend, no repair): **accepted** — report schema
+**v12**, `verification_ms` 88 096, key
+`fg-report-9fc1a2c5-…-20261018-1`, digest
+`8344852cfa4bc11968d4a003f48cf27b53ca5174d0d966db22da47b7edfea4a8`
+(`falsegreen verify-report` on the saved file → VERIFIED, keyless Ed25519).
+Class posture: SCA pass, SAST pass, secrets pass, supply chain pass
+(92 components inventoried), licence **NOT ASSESSED** (no licence policy
+frozen — D3), `standards: []` (attestation removed), exports
+spdx-3.0 + cyclonedx-1.7 + cyclonedx-1.7-vex embedded.
+Proof rows: kani `proven` (2 harnesses, 0.92 s, 4 clauses extracted,
+encoding sha `e87bb002…`) and creusot `proven` goals 1/1 (55.1 s,
+alt-ergo + z3 — encoding NOT extracted, see #33).
+Human page: https://falsegreen.com/report/0744390a-a793-4c99-9df7-0c948d247991
+Artifacts in this repo: `docs/REPORT-0744390a-a793-4c99-9df7-0c948d247991.json`
+(signed JSON, 551 KB) and `docs/review/w9-marketing-0744390a.pdf` (15 pages,
+light palette).
+
+### #33 — the Creusot encoding extractor is blind to a Cargo-workspace layout: the row proves with an EMPTY formal claim and commits to `e3b0c442…`
+The report's proof rows must show "the proposition the machine was given,
+verbatim" (§12.4). For Kani that works (the harness is read by path; the
+probe row carries `kani::assume(seq < u64::MAX)` /
+`kani::assert(!wrapped)` … and a real `encoding_sha256`). For Creusot it
+silently returns nothing when the spec lives in a workspace MEMBER crate:
+`falsegreen-verifier/src/creusot_core.rs::crate_sources` walks **only
+`<work_dir>/src/**/*.rs`** — this workspace keeps the spec in
+`crates/ledger-spec/src/lib.rs`, so `extract_creusot(&[], targets)` yields
+`clauses: []`, `harness: ""`, and `encoding_sha256 =
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` — the
+sha256 of the EMPTY string, i.e. the very `e3b0c442` vacuous-digest class the
+0.10.0 fail-closed work retired everywhere else. Consequence: a `proven`
+Creusot row whose encoding commitment proves nothing and whose Formal claim
+section is blank; the frozen `#[requires]`/`#[ensures]` text never reaches
+the signed artifact. The fixtures are all single-crate-at-the-root, so the
+suite cannot see this. Fix: gather the sources of the crate the TARGET
+belongs to (the target's artifact path names its crate —
+`verif/ledger_spec_rlib/links` → `ledger-spec`), or scan every workspace
+member's `src/`; and when the extraction yields zero clauses, say so in the
+row (`encoding not extracted`) instead of committing to the empty digest.
+
+### #34 — the D4 tool-version row names CARGO, not the prover (`cargo 1.99.0` for a Creusot v0.14.0 proof)
+`verify.rs::tool_version` runs `argv[0] --version`. The Creusot argv is
+`["cargo", "creusot", …]`, so every Creusot row and the *Tools & provers*
+table print `cargo 1.99.0 (5f94df478 2026-08-27)` — the build tool's version
+presented as the prover's. The D4 promise was the version of the tool that
+DECIDED the row (the image pins Creusot v0.14.0 + why3 + the provers). Fix:
+probe `cargo creusot --version` (or read the pinned `creusot-std` version /
+the `$CREUSOT_DATA_HOME` toolchain marker), and name alt-ergo/z3 versions
+too; a wrong version in a signed report is exactly what an auditor trips on.
+
+### #35 — the shim's client SCA over-reports: 37 "vulnerable" rows (one CRITICAL) for a lockfile the signed witness calls clean
+`falsegreen security scan` (client-attested, OSV `/v1/querybatch`) flagged
+37 advisories against this Cargo.lock — including
+`rand_core@0.6.4 / GHSA-mmc9-pwm7-qj5w / CRITICAL`. The same snapshot the
+server uses (`osv-dev-20261024-4576ab68`, which CONTAINS those advisories:
+`RUSTSEC-2024-0404`, `RUSTSEC-2019-0035`, `RUSTSEC-2020-0146`, …) shows the
+pinned versions are OUTSIDE every affected range
+(`anstream 1.0.0` > fixed `0.6.8`; `rand_core 0.6.4` > fixed `0.4.2`;
+`generic-array 0.14.7` > fixed `0.13.3`), and the in-image osv-scanner
+witness reports `{"results":[]}`. So the client lists an advisory whenever
+OSV's version query returns it, without honouring the `fixed`/range semantics
+— a customer following it would churn dependencies against non-existent
+vulnerabilities, and the client/signed-witness disagreement undermines the
+"two legs agree" story. Direction: filter by the advisory's affected ranges
+(the enrichment call `GET /v1/vulns/{id}` already fetches them) or re-query
+`/v1/query` per package; until then label the rows
+"advisory mentions this package — pinned version not confirmed affected".
+(Safety direction is at least correct: the client over-reports, never under.)
+
+### #36 — the D0 secret gate refuses a publish because the repo keeps its OWN report renderings (`data-cfemail` blobs)
+`falsegreen security scan` → `secrets: refused`, 6 rows, all in
+`docs/review/*.html` — the saved pre-defang HTML renderings of past signed
+reports, whose Cloudflare email-obfuscation spans (`data-cfemail="ie4e…"`,
+~26 hex chars) sit BELOW the 40-char pure-hex allowlist floor and read as
+high-entropy secrets. The gate is the final authority with no allowlist, so
+the whole workspace becomes unpublishable until the artifacts leave the
+selection. Mitigation applied here (and the 0.9.0 precedent for the signed
+JSON above it): `.falsegreenignore` now also excludes `docs/review/`. Proper
+fix: context-allowlist the Cloudflare obfuscation markers
+(`data-cfemail="…"`, `<span class="cf_email_text">`) in ruleset v3, or scope
+the D0 scan to source-ish files — FalseGreen must not be unable to publish a
+tree that stores its own reports.
+
+### Working well (this run)
+- The ladder over SHIPPED code decided cleanly: the same sentence carried by
+  Kani (bounded, `proven`, 1.07 s) and Creusot (unbounded, `proven` 1/1,
+  38.6 s), and the repair-loop history (attempt 1 Kani counterexample →
+  source fixed, claim frozen) stayed readable in the contract comments.
+- The free in-image pre-flight (contract `check`, `falsegreen-verify run`,
+  the osv witness) cost nothing and predicted the paid outcome exactly — the
+  paid Job spent one entitlement on a run whose verdict was already known.
+- The 0.14.0 `check` removal is a real cutover: a legacy contract is refused
+  with `BAD_CONTRACT` naming the `[[criterion]]` migration (this repo's old
+  file would not have been accepted).
+
+### #37 — the account charge line prints `0.00 usd` for a purchase whose price is on file (money surface, display)
+`falsegreen account` printed for this Job's charge:
+`2026-10-25T22:05:38.545545Z — 0744390a-… — 0.00 usd (source: polar_purchase)`
+while the entitlement row carries `catalog_amount_cents = 299900`,
+`paid_amount_cents = 0`. The shim's formatter DOES have an honest branch —
+a missing `amount_cents` renders "amount on file" (`lib.rs:351`) — but the
+legacy rows store integer `0`, not NULL, so they render as a real price of
+zero. Prod: 44 of 45 `polar_purchase` entitlements have
+`paid_amount_cents = 0` (all created 10-13…10-23, i.e. pre-0.14.0-deploy;
+the 0.14.0 webhook/reconcile paths DO write the real amount —
+`webhook.rs:875`, `reconcile.rs:413` — the first post-deploy purchase will
+carry it). D16 deliberately annotates rather than rewrites history, so the
+display must stop laundering it: treat `0` with a non-zero catalog amount as
+"not recorded (catalog 2999.00)", and never WRITE 0 for an unknown payment
+(NULL is the honest value). Same class of mistake the 0.10.0 fail-closed work
+killed in verdicts: a zero where the truth is "unknown".
+
+### Smoke-process note — the session's MCP shim process predated the reinstall (NOT a product defect)
+The `falsegreen_get_report` result for this Job carried the PRE-W8 link pair
+(`report_url = …/html`, `report_json_url =` bare). Root cause: this omp
+session's `falsegreen mcp` process (PID 2302095) started 13:44 local, the
+0.14.0 crates.io install replaced `~/.cargo/bin/falsegreen` at 14:34 — so the
+registered surface was the older in-memory binary (the 2026-10-23 logged
+trap, re-encountered). The PUBLISHED 0.14.0 crate is correct: driving the
+freshly installed binary's stdio MCP directly returns
+`report_url = /report/<id>` (bare), `report_json_url = /report/<id>/json`,
+`report_pdf_url = /report/<id>/pdf` — in both the text block and
+structuredContent — matching the live edge (measured: bare 200 text/html,
+`/json` 200 application/json, `/pdf` 200 application/pdf). Action for the
+next session: restart omp (or re-register the MCP) after any shim upgrade
+before trusting surface-level output.
+
+### #37-adjacent working well
+The account surface (0.11.0 feature) now works end-to-end — the Oct-23
+#29 refusal/exit-0 defect is gone: 45 purchased · 34 spent · 7 refunded ·
+4 available, every terminal charge with its `charged_at`, this Job's charge
+listed at 22:05:38 (one spend, Model W). `falsegreen verify-report` on the
+saved JSON (the published CLI, no network, no operator key) →
+`VERIFIED … digest 8344852cfa4bc119…, schema v12`.
