@@ -1166,7 +1166,8 @@ $ falsegreen security scan          # temp crate, one file = 7e1c9441.html
 SECRET_REFUSED — the publish is blocked
 ```
 
-Line 272 is `ed25519 public key: ie4eQdY1lt7O5aCCQzO+/192Yzc4pLQsGyVNqSKtlmA=`
+Line 272 is `ed25519 public key: ie4e…` (the 44-char base64 elided — quoting it
+in full is what the SECRET witness fails a Job for, see #38)
 and line 273 `ed25519 signature: Tnhf…==`. The 40+ char base64 runs hit the
 `high-entropy` rule (`falsegreen-protocol/src/secrets.rs`): the 0.10.0 line
 suppression (`with_line_allow`) is JSON-key shaped (`"public_key":` etc.) and
@@ -1234,3 +1235,42 @@ The account surface (0.11.0 feature) now works end-to-end — the Oct-23
 listed at 22:05:38 (one spend, Model W). `falsegreen verify-report` on the
 saved JSON (the published CLI, no network, no operator key) →
 `VERIFIED … digest 8344852cfa4bc119…, schema v12`.
+
+### #38 — the client secret gate says CLEAN while the job-image witness fails the Job (the two surfaces disagree on the same bytes)
+
+Measured 2026-10-26 on the 0.15.0 launch artifact, Job `3bd7af61` attempt 1 —
+the first run where the client gate passed a publish AND the run still failed.
+
+Symptom: `falsegreen security scan` (client, ruleset `secret-rules-v4`) reported
+`"secrets": {"state": "clean", "scanned": 35}`, so the publish was gate-clean and
+the Job started. Inside the job container the same tree produced
+`class=secret tool=gitleaks findings=1 severity=critical rule_id=generic-api-key
+location=…/FALSEGREEN_ISSUES.md:1169`, and the frozen policy
+(`secrets_fail_on_any_unexcepted: true`) turned a green run — 4/4 criteria plus
+kani `proven` and creusot `proven` — into `ATTEMPT_FAILED` → `repairing`.
+
+What actually broke: line 1169 of this file quoted an ed25519 public key in full
+(the key is public; the string is a 44-char base64 run introduced by the word
+`key:`). Gitleaks' `generic-api-key` regex matches that shape.
+
+Root cause: the two surfaces do not run the same rules. The D0 engine in
+`falsegreen-protocol/src/secrets.rs` is a separate pure-Rust implementation from
+the gitleaks binary baked into the job image, and ruleset v4's vocabulary is not
+a superset of gitleaks' shipped patterns — this is the same gap #20 filed for the
+GitHub PAT and Google API key shapes (glpat-/AIza), unfixed for
+`generic-api-key`. The asymmetry is by design in one direction (the client gate
+is a heuristic pre-flight, the witness is the authority — a client miss never
+weakens the verdict, exactly as happened here), but the customer pays the cycle:
+the refusal that should have come before the spend came after the attempt.
+
+Gap to close (0.16.0): rule-parity, not rule-weakening. Pin a test that runs the
+client engine over gitleaks' own pattern corpus (its rules TOML, version-pinned
+with the image) and fails on any pattern the witness fires and the client misses;
+when the client misses but the shape is unambiguous, refuse the publish and name
+the rule.
+
+Working as intended in the same run: fail-closed on a demonstrated violation, no
+silent pass, the attempt reason recorded verbatim (`unexcepted secret finding
+3dc073d2… (gitleaks/generic-api-key) — the frozen secret policy fails on any`),
+and Model W untouched — the repair attempt is free and the entitlement is still
+unspent.
