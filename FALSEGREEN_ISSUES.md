@@ -1151,19 +1151,38 @@ vulnerabilities, and the client/signed-witness disagreement undermines the
 "advisory mentions this package — pinned version not confirmed affected".
 (Safety direction is at least correct: the client over-reports, never under.)
 
-### #36 — the D0 secret gate refuses a publish because the repo keeps its OWN report renderings (`data-cfemail` blobs)
-`falsegreen security scan` → `secrets: refused`, 6 rows, all in
-`docs/review/*.html` — the saved pre-defang HTML renderings of past signed
-reports, whose Cloudflare email-obfuscation spans (`data-cfemail="ie4e…"`,
-~26 hex chars) sit BELOW the 40-char pure-hex allowlist floor and read as
-high-entropy secrets. The gate is the final authority with no allowlist, so
-the whole workspace becomes unpublishable until the artifacts leave the
-selection. Mitigation applied here (and the 0.9.0 precedent for the signed
-JSON above it): `.falsegreenignore` now also excludes `docs/review/`. Proper
-fix: context-allowlist the Cloudflare obfuscation markers
-(`data-cfemail="…"`, `<span class="cf_email_text">`) in ruleset v3, or scope
-the D0 scan to source-ish files — FalseGreen must not be unable to publish a
-tree that stores its own reports.
+### #36 — the D0 secret gate refuses a publish because the repo stores FalseGreen's OWN signed report renderings
+**Root cause corrected on 2026-10-25 (reproduced; my original diagnosis was wrong).**
+The tripping lines are NOT Cloudflare email-obfuscation spans — those are
+26–32 hex chars, below the 40-char heuristic floor, and never fire. They are
+the report's own **signature fields**, printed in prose by the HTML/PDF
+renderers:
+
+```
+$ falsegreen security scan          # temp crate, one file = 7e1c9441.html
+"secrets": { "state": "refused", "rows": [
+  { "file": "7e1c9441.html", "line": 272, "rule_id": "high-entropy", "prefix": "ie4e…" },
+  { "file": "7e1c9441.html", "line": 273, "rule_id": "high-entropy", "prefix": "Tnhf…" } ] }
+SECRET_REFUSED — the publish is blocked
+```
+
+Line 272 is `ed25519 public key: ie4eQdY1lt7O5aCCQzO+/192Yzc4pLQsGyVNqSKtlmA=`
+and line 273 `ed25519 signature: Tnhf…==`. The 40+ char base64 runs hit the
+`high-entropy` rule (`falsegreen-protocol/src/secrets.rs`): the 0.10.0 line
+suppression (`with_line_allow`) is JSON-key shaped (`"public_key":` etc.) and
+does not match the prose labels the renderers emit. Six rows across three
+files = three × (public key + signature). The gate is final with no allowlist,
+so the artifact we hand the customer makes their NEXT publish impossible — and
+the same class hits ordinary customer content (`data:image/…;base64,` assets
+in HTML/SVG/JSON, source-map payloads).
+Mitigation applied here: `.falsegreenignore` excludes `docs/review/`.
+Proper fix (0.15.0 row 1): extend the high-entropy **line-context**
+suppression to the labels we print and to `;base64,` / `sourceMappingURL=`
+payloads in ruleset v4 — the suppression covers the heuristic only, so a
+specific-pattern secret (AWS, OpenAI, `glpat-`, `AIza`, `npm_`, JWT) on the
+same line still fires; the `.falsegreenignore` workaround then comes out.
+Rejected alternative: scoping the D0 scan to source-ish files — that hides a
+real secret in an asset file, which is worse than a false positive.
 
 ### Working well (this run)
 - The ladder over SHIPPED code decided cleanly: the same sentence carried by
