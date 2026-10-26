@@ -35,6 +35,15 @@ required = true
   allowed_exit_codes = [0]
 
 [[criterion]]
+id = "clippy"
+title = "the workspace is clippy-clean (-D warnings)"
+required = true
+  [[criterion.command]]
+  argv = ["cargo", "clippy", "--workspace", "--", "-D", "warnings"]
+  timeout_seconds = 900
+  allowed_exit_codes = [0]
+
+[[criterion]]
 id = "formatting"
 title = "the tree is rustfmt-clean"
 required = false
