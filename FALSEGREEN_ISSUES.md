@@ -1274,3 +1274,49 @@ silent pass, the attempt reason recorded verbatim (`unexcepted secret finding
 3dc073d2… (gitleaks/generic-api-key) — the frozen secret policy fails on any`),
 and Model W untouched — the repair attempt is free and the entitlement is still
 unspent.
+
+### #39 — the signed report stated a FALSE toolchain: the environment cache key omits the toolchain VERSION
+
+Job `3bd7af61` (schema 13) reports `toolchain: "rustc 1.99.0 (rustc) (1.99.0)"`
+and `dependency_manifest.tool_version: 1.99.0`. The image that ran it is 1.99.1:
+
+```
+$ docker run --rm --entrypoint rustc falsegreen-job:rust1 --version
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+$ docker run --rm --entrypoint cargo falsegreen-job:rust1 --version
+cargo 1.99.1 (5f94df478 2026-08-27)
+# /opt/falsegreen/tools.json  →  ("rust", "1.99.1")
+```
+
+and a FRESH container over the same workspace (empty `envs` store) captures
+`"toolchain_version": "1.99.1"`. So the value is not a probe bug — it is a
+**cache-hit bug**.
+
+Root cause (`falsegreen-verifier/src/ecosystems/rust/build.rs`): the environment
+cache key is `manifest::env_fingerprint(eco, toolchain, deps)` and `input.toolchain`
+is the tool ID (`rustc`) — no version. The rustc probe happened at step 8, AFTER
+the cache lookup (step 6), so it could not participate in the key. The worker's
+`envs` volume persists across image rebuilds, so the 1.99.0-era capture (keyed
+identically) was served to a Job executing on 1.99.1, and its stale capture —
+`env.json` — became signed fact: the report's Environment section, the
+`env_sha256` binding, and the dependency-manifest tool version all inherited the
+wrong number. The tools.json version cells (0.15.0 row 7) are correct because
+they are read from the image manifest, not the cache — the report contradicts
+itself across sections, which is exactly what a reader trusts least.
+
+Fix (0.15.0, verifier; needs the image rebuild): probe `rustc --version` BEFORE
+the key is computed and put the version in the key's toolchain slot
+(`rustc@1.99.1`), so a toolchain bump misses the cache instead of reusing it;
+plus a belt-on the hit path — a cached capture whose `toolchain_version` differs
+from the live probe is never bound, it rebuilds. Consequence: every lane rebuilds
+its vendored environment once after the bump (cost: one build, no network).
+
+### #40 — `verification_ms` is the Job's wall span, not the time the machines spent verifying
+
+The same report prints `verification_ms: 3260224` — 54 minutes for a Job whose
+two attempts ran 62 s and ~60 s. The span is `t_start → t_done`, so it includes
+the 54 minutes I spent diagnosing the failed attempt 1 before calling repair. For
+a single-attempt Job it is honest; for a repaired Job it advertises the human
+pause as verification cost, and the account surface shows the same field. Fix
+(0.16.0, server-side; no image): report the summed attempt durations and, if the
+elapsed span is wanted at all, label it separately as elapsed-since-created.
