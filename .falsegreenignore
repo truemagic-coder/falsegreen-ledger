@@ -1,13 +1,4 @@
-# Past signed verification reports: they embed base64 Ed25519 public keys +
-# signatures that the D0 secret gate (secret-rules-v1) flags as high-entropy.
-# They are verification artifacts, not source under verification.
-# (0.9.0 smoke, 2026-10-20)
-docs/REPORT-*.json
-# Report RENDERINGS (the HTML/PDF human pages saved for review): the pre-defang
-# HTML carries Cloudflare email-obfuscation blobs (`data-cfemail="ie4e…"`,
-# ~26 hex chars — under the pure-hex allowlist floor), which the D0 secret gate
-# flags as high-entropy and therefore refuses the whole publish. Same class as
-# the JSON reports above: verification artifacts, not source under verification
-# (0.14.0 W9 smoke, 2026-10-25 — filing the rule gap in FALSEGREEN_ISSUES.md).
-docs/review/
-# Nothing to force-include: Cargo.lock is committed (never gitignored).
+# Past signed verification reports are verification artifacts, not source
+# under verification: they embed base64 Ed25519 public keys and signatures
+# that the secret publish gate would flag as high-entropy.
+reports/
