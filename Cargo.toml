@@ -27,5 +27,11 @@ rand = "0.8"
 rand = "0.8"
 tempfile = "3"
 
+[lints.rust]
+# `cargo creusot` builds the crate with `--cfg creusot`; the library gates
+# its application modules on it (see src/lib.rs). Registering the name
+# keeps the `unexpected_cfgs` lint honest for stable builds.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(creusot)'] }
+
 [profile.release]
 lto = true
