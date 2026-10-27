@@ -61,7 +61,7 @@ required = false
 [[invariant]]
 name = "chain linking is exact successor arithmetic and never wraps at the u64 ceiling"
 description = "record N links to record N-1 iff prev_hash equals record N-1's hash AND seq is the exact u64 successor of record N-1's seq; the successor is never taken modulo the u64 ceiling — no seq may link past u64::MAX (the chain cannot wrap) — and on the guarded domain (prev below u64::MAX) the predicate is exactly seq == prev + 1"
-plan_refs = ["proof.kani", "proof.creusot"]
+plan_refs = ["formal-proofs", "floor-green", "both-rungs-proven"]
 kani = "proofs/links_kani.rs"
 
 [invariant.creusot]
