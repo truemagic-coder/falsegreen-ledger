@@ -8,6 +8,21 @@ detectable. Closed shards carry a Merkle root signed with Ed25519 — the
 external trust anchor. A ledger verifies offline with only the shard files
 and no signer present.
 
+## Independently verified
+
+This program, exactly as published here, was verified by FalseGreen:
+build, the full test suite, clippy and formatting as frozen criteria, and
+one claim — chain linking is exact successor arithmetic that never wraps
+at the u64 ceiling — proven twice by machines over encodings that live in
+this repo (a bounded Kani model check over the shipped `src/rules.rs`,
+and an unbounded Creusot/Why3 proof of the guarded Pearlite spec in
+`src/spec.rs`). Accepted on the first attempt in 72 s; the signed report
+verifies offline, no account or network needed:
+
+- Human report: <https://falsegreen.com/report/301e97ff-620a-43c5-981c-57cf719b8c5d>
+- Signed JSON + PDF in this repo: `reports/`
+- Offline check: `falsegreen verify-report reports/301e97ff-620a-43c5-981c-57cf719b8c5d.json`
+
 ## Build
 
 ```sh
