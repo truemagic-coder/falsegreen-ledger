@@ -1,18 +1,29 @@
-[workspace]
-resolver = "2"
-members = ["crates/falsegreen-ledger-core", "crates/falsegreen-ledger", "crates/ledger-rules", "crates/ledger-spec"]
-[workspace.package]
+[package]
+name = "falsegreen-ledger"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.85"
 license = "MIT"
+description = "A tamper-evident, hash-chained audit ledger for AI-agent actions"
+repository = "https://github.com/truemagic-coder/falsegreen-ledger"
+homepage = "https://github.com/truemagic-coder/falsegreen-ledger"
+readme = "README.md"
+keywords = ["audit", "ledger", "tamper-evident", "hash-chain", "merkle"]
+categories = ["cryptography", "data-structures"]
+exclude = ["docs/", "proofs/", "reports/", "verif/"]
 
-[workspace.dependencies]
+
+[dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
 hex = "0.4"
 ed25519-dalek = { version = "2", features = ["rand_core"] }
 clap = { version = "4", features = ["derive"] }
+creusot-std = "0.14.0"
+rand = "0.8"
+
+[dev-dependencies]
 rand = "0.8"
 tempfile = "3"
 

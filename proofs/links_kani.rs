@@ -1,18 +1,20 @@
-// L1 (Kani) encoding of the chain-link successor claim — the harness proves
-// the SHIPPED rules: `#[path]` pulls the real `ledger-rules` source into the
-// harness crate root (docs('proof'): never copy the code into the harness).
-// The claim under proof: the successor predicate NEVER WRAPS at the u64
-// ceiling — no input can make a smaller seq link past u64::MAX — and on the
-// guarded domain it equals the spec `seq == prev + 1`.
+// The bounded-model-checking encoding of the chain-link successor claim.
 //
-// Kani 0.68.0 models arithmetic overflow as a violation, so an unguarded
-// `prev + 1` fails the FIRST proof with a concrete input; the frozen claim
-// then forces the CODE to carry the guard.
+// The harness proves the SHIPPED code: `#[path]` includes the real rules
+// module (src/rules.rs) directly into the harness crate root — the proof
+// never runs against a copy. The claim under proof: the successor
+// predicate NEVER WRAPS at the u64 ceiling (no input can make a smaller
+// seq link past u64::MAX), and on the guarded domain (prev below the
+// ceiling) it is exactly the specification `seq == prev + 1`.
+//
+// Kani models arithmetic overflow as a violation, so an unguarded
+// `prev + 1` fails with a concrete counterexample at the ceiling — which
+// is exactly how the guard in src/rules.rs earned its place.
 
-#[path = "../crates/ledger-rules/src/lib.rs"]
-mod ledger_rules;
+#[path = "../src/rules.rs"]
+mod rules;
 
-use ledger_rules::links;
+use rules::links;
 
 #[kani::proof]
 fn successor_never_wraps_at_the_u64_ceiling() {

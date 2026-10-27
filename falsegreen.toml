@@ -1,27 +1,21 @@
-# W9 — the 0.14.0 marketing run. What changed vs the 0.11.0-era contract:
-# the ten `[[invariant]]` claims that "proved" themselves with a mechanical
-# `check` (a `cargo test` filter + a pinned passed-count) are GONE, not
-# migrated (user ruling 2026-10-25: "we either prove them properly with
-# kani/creusot or not" — a passing test proves the test passed). Mechanical
-# facts belong in `[[criterion]]` rows; an `[[invariant]]` is now only ever a
-# proposition a machine discharged. One claim survives because it has two real
-# encodings over the SHIPPED arithmetic: Kani (L1, bounded, full u64 domain)
-# and Creusot (L2, unbounded, guarded domain). Both must decide PROVEN for
-# this Job to be accepted — the contract states the claim, the tools state the
-# formal text (extracted verbatim into the signed report, under
-# encoding_sha256), and the machine decides.
+# The FalseGreen contract for this program.
+#
+# A contract is a frozen definition of done. `[[criterion]]` rows are
+# mechanical commands that run on every attempt — red fails the Job.
+# `[[invariant]]` rows are claims carried by formal encodings in this
+# repository; the proof toolchain discharges them and the signed report
+# records the proposition it actually decided, verbatim.
 schema = 1
 language = "rust"
 wall_seconds = 2700
 
-# ── the mechanical floor: what a criterion IS (argv + cwd/env/timeout, every
-# attempt; red fails the Job) ──────────────────────────────────────────────
+# ── the mechanical floor ──────────────────────────────────────────────────
 [[criterion]]
 id = "build"
-title = "the workspace compiles (release)"
+title = "the program compiles (release)"
 required = true
   [[criterion.command]]
-  argv = ["cargo", "build", "--workspace", "--release"]
+  argv = ["cargo", "build", "--release"]
   timeout_seconds = 600
   allowed_exit_codes = [0]
 
@@ -30,48 +24,51 @@ id = "tests"
 title = "the full test suite passes offline"
 required = true
   [[criterion.command]]
-  argv = ["cargo", "test", "--workspace"]
+  argv = ["cargo", "test"]
   timeout_seconds = 900
   allowed_exit_codes = [0]
 
 [[criterion]]
 id = "clippy"
-title = "the workspace is clippy-clean (-D warnings)"
+title = "clippy-clean (-D warnings)"
 required = true
   [[criterion.command]]
-  argv = ["cargo", "clippy", "--workspace", "--", "-D", "warnings"]
+  argv = ["cargo", "clippy", "--all-targets", "--", "-D", "warnings"]
   timeout_seconds = 900
   allowed_exit_codes = [0]
 
 [[criterion]]
 id = "formatting"
-title = "the tree is rustfmt-clean"
+title = "rustfmt-clean"
 required = false
   [[criterion.command]]
   argv = ["cargo", "fmt", "--all", "--check"]
   timeout_seconds = 120
   allowed_exit_codes = [0]
 
-# ── the claim, with the two machine encodings ─────────────────────────────
-# THE RUN A HISTORY (evidence, in the tree): attempt 1 of Job 68239ac0 had
-# Kani DISPROVE this sentence — `prev + 1` overflowed at the u64 ceiling
-# (counterexample in the signed report) — and the repair loop fixed the CODE
-# (the frozen claim stayed put). `ledger_rules::links` now carries the
-# `checked_add` guard the claim always stated; both rungs are re-measured
-# PROVEN in-image below before this Job was created.
+# ── the claim, with its two formal encodings ─────────────────────────────
+# One sentence, two encodings the machines discharge:
+# * Kani: a bounded model check over the SHIPPED arithmetic in
+#   src/rules.rs (harness includes that file by path) over the FULL u64
+#   domain — an overflow or wrap at the ceiling is a violation with a
+#   concrete counterexample.
+# * Creusot: an unbounded Why3 proof of the guarded specification in
+#   src/spec.rs.
+# History: the first attempt at this claim was DISPROVEN — the harness
+# found `prev + 1` overflowing at the u64 ceiling — and the guard now in
+# src/rules.rs is the fix the frozen claim forced. The claim never moved;
+# the code did.
 [[invariant]]
 name = "chain linking is exact successor arithmetic and never wraps at the u64 ceiling"
 description = "record N links to record N-1 iff prev_hash equals record N-1's hash AND seq is the exact u64 successor of record N-1's seq; the successor is never taken modulo the u64 ceiling — no seq may link past u64::MAX (the chain cannot wrap) — and on the guarded domain (prev below u64::MAX) the predicate is exactly seq == prev + 1"
-plan_refs = ["ladder.l1-kani", "ladder.l2-creusot"]
+plan_refs = ["proof.kani", "proof.creusot"]
 kani = "proofs/links_kani.rs"
 
 [invariant.creusot]
-# The spec lives IN THE CRATE (`crates/ledger-spec/src/lib.rs`:
-# `#[requires(prev < 18446744073709551615u64)]` +
-# `#[ensures(result == (seq == prev + 1u64))]`), so the encoding rides the
-# source hash; this slot freezes the SCOPE and the proof budget only. The
-# target is why3find's artifact path for that item (measured shape).
-targets = ["verif/ledger_spec_rlib/links"]
+# The target is why3find's artifact path for the spec item (measured:
+# `cargo creusot` translates the whole crate, so the rlib is named for
+# the package and the item path names the module).
+targets = ["verif/falsegreen_ledger_rlib/links"]
 mode = "prove"
 provers = ["alt-ergo", "z3"]
 timeout_ms = 30000

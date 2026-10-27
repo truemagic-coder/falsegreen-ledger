@@ -8,24 +8,17 @@ detectable. Closed shards carry a Merkle root signed with Ed25519 — the
 external trust anchor. A ledger verifies offline with only the shard files
 and no signer present.
 
-## Crates
-
-| Crate | Purpose |
-| --- | --- |
-| `falsegreen-ledger-core` | event model + canonical serialization, hash chain, append-only shard store, Merkle/Ed25519 integrity, verification engine, policy engine, compaction |
-| `falsegreen-ledger` | the CLI over the core (`init`, `append`, `verify`, `tail`, `export`, `import`, `compact`, `keygen`, `policy`) |
-
 ## Build
 
 ```sh
-cargo build --workspace --release
+cargo build --release
 ```
 
 The full test suite runs offline from the committed `Cargo.lock`:
 
 ```sh
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
+cargo test
+cargo clippy --all-targets -- -D warnings
 cargo fmt --all --check
 ```
 
@@ -90,7 +83,7 @@ file *and* its seal with a matching re-signed pair (requires the private
 key), an all-shards rewrite by someone with write access to every shard
 before any external party anchors a seal (publish a seal — e.g. in a CI
 report or an external log — to fix that window), or loss of shards. The
-full threat model is in [`docs/DESIGN.md`](DESIGN.md).
+full threat model is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## Design
 
@@ -98,6 +91,20 @@ Canonical forms, chain and Merkle construction, seal message, policy
 semantics, compaction, report schema, and the threat model:
 [`docs/DESIGN.md`](docs/DESIGN.md).
 
+## Proofs
+
+The core linking rule is carried by two formal encodings, executed by
+[`falsegreen.toml`](falsegreen.toml) as a FalseGreen Job:
+
+- a bounded model check (`proofs/links_kani.rs`) over the shipped code in
+  `src/rules.rs` — the harness includes that file by path, so the proof
+  and the binary run the same bytes;
+- an unbounded Why3 proof of the guarded specification in `src/spec.rs`
+  (`#[requires]` / `#[ensures]`, erased by a plain `cargo build`).
+
+Together they pin one claim: *chain linking is exact successor arithmetic
+and never wraps at the u64 ceiling.*
+
 ## License
 
-See `Cargo.toml` (workspace) — MIT.
+MIT — see [`LICENSE`](LICENSE).

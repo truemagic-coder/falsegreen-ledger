@@ -1,26 +1,18 @@
-//! The ledger's PURE decision rules — extracted verbatim from `chain.rs` and
-//! `store.rs` so the proof ladder can decide claims about the SHIPPED code.
+//! The ledger's pure decision rules.
 //!
-//! Why a separate dependency-free crate: `kani-driver <harness>` compiles the
-//! harness as its OWN crate root, so any module that itself uses serde/sha2 is
-//! out of L1 reach (`E0463`). Keeping the arithmetic and naming rules here,
-//! with the real code CALLING them, means the Kani harness proves the same
-//! bytes the binary runs — never a copy of them.
-//!
-//! ENCODING JUDGEMENT (recorded honestly at freeze): `links` below is the
-//! ENCODING JUDGEMENT (recorded honestly at freeze): `links` below SHIPPED as
-//! `prev + 1` unguarded. The ladder's invariant claims the successor relation
-//! never wraps; the machine DISAGREED on attempt 1 (Kani counterexample at the
-//! ceiling) — a real defect in real code — and the repair loop fixed the CODE
-//! (the frozen claim stayed). That is the campaign's point, in evidence.
+//! These functions are deliberately free of external dependencies so a
+//! bounded model checker can compile them into its harness: the harness
+//! includes *this file* by path (`#[path = "../src/rules.rs"]`), never a
+//! copy of it, and the library and CLI call the very same bytes the proof
+//! checks. Keeping the arithmetic and naming rules in one small module is
+//! what lets a formal proof speak about the shipped code.
 
 /// True when `seq` is the immediate successor of `prev`.
 ///
-/// This is `check_link`'s arithmetic part moved out of `Record::check_link`.
-/// RUN A REPAIR (attempt 1, Job 68239ac0): Kani's L1 rung DISPROVED the frozen
-/// claim here — `prev + 1` overflowed at the ceiling (`ledger-rules/src/lib.rs:21`)
-/// — so the CODE now carries the guard the claim always stated: no successor
-/// exists past `u64::MAX`, and nothing links past it.
+/// The successor is never taken modulo the u64 ceiling: no link may exist
+/// past `u64::MAX`. (A bounded proof over an earlier version of this
+/// function found exactly that defect — `prev + 1` overflowing at the
+/// ceiling — and the guard you see here is the fix it forced.)
 pub fn links(seq: u64, prev: u64) -> bool {
     match prev.checked_add(1) {
         Some(successor) => seq == successor,
@@ -57,6 +49,12 @@ mod links {
         assert!(!links(3, 1));
         assert!(!links(1, 1));
         assert!(!links(0, 1));
+    }
+
+    #[test]
+    fn never_links_past_the_ceiling() {
+        assert!(!links(0, u64::MAX)); // the wrapping candidate — rejected
+        assert!(!links(u64::MAX, u64::MAX));
     }
 }
 

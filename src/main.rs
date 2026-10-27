@@ -1,4 +1,4 @@
-//! `falsegreen-ledger` — the CLI over `falsegreen-ledger-core`.
+//! `falsegreen-ledger` — the command-line interface.
 //!
 //! Exit codes (the CI contract): `0` ok · `1` tampered · `2` gap ·
 //! `3` signature failed · `4` policy violation · `5` corrupt/parse ·
@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use falsegreen_ledger_core::{
+use falsegreen_ledger::{
     compact_last_sealed, verify_ledger, Event, Ledger, Policy, VerificationReport,
 };
 
@@ -115,7 +115,7 @@ fn run(cmd: Cmd) -> Result<ExitCode, CliError> {
             let ledger = Ledger::init(&root).map_err(|e| CliError::Runtime(e.to_string()))?;
             println!(
                 "{}",
-                serde_json::json!({ "root": ledger.root(), "genesis": falsegreen_ledger_core::GENESIS_HASH })
+                serde_json::json!({ "root": ledger.root(), "genesis": falsegreen_ledger::GENESIS_HASH })
             );
             Ok(ExitCode::SUCCESS)
         }
@@ -203,7 +203,7 @@ fn run(cmd: Cmd) -> Result<ExitCode, CliError> {
                 .map_err(|e| CliError::Runtime(e.to_string()))?
                 .is_some()
             {
-                falsegreen_ledger_core::seal_active_with(&ledger, &key)
+                falsegreen_ledger::seal_active_with(&ledger, &key)
                     .map_err(|e| CliError::Runtime(e.to_string()))?;
             }
             let record =
@@ -242,28 +242,27 @@ fn verify_exit_code(report: &VerificationReport) -> ExitCode {
         return ExitCode::SUCCESS;
     }
     let kinds: Vec<_> = report.failures.iter().map(|f| f.kind).collect();
-    let has = |list: &[falsegreen_ledger_core::verify::FailureKind]| {
-        list.iter().any(|k| kinds.contains(k))
-    };
-    const CORRUPT: &[falsegreen_ledger_core::verify::FailureKind] = &[
-        falsegreen_ledger_core::verify::FailureKind::ParseLine,
-        falsegreen_ledger_core::verify::FailureKind::InvalidEvent,
-        falsegreen_ledger_core::verify::FailureKind::BadSealStructure,
+    let has =
+        |list: &[falsegreen_ledger::verify::FailureKind]| list.iter().any(|k| kinds.contains(k));
+    const CORRUPT: &[falsegreen_ledger::verify::FailureKind] = &[
+        falsegreen_ledger::verify::FailureKind::ParseLine,
+        falsegreen_ledger::verify::FailureKind::InvalidEvent,
+        falsegreen_ledger::verify::FailureKind::BadSealStructure,
     ];
-    const TAMPERED: &[falsegreen_ledger_core::verify::FailureKind] = &[
-        falsegreen_ledger_core::verify::FailureKind::BadRecordHash,
-        falsegreen_ledger_core::verify::FailureKind::BrokenLink,
-        falsegreen_ledger_core::verify::FailureKind::BadMerkleRoot,
-        falsegreen_ledger_core::verify::FailureKind::BrokenRootLink,
+    const TAMPERED: &[falsegreen_ledger::verify::FailureKind] = &[
+        falsegreen_ledger::verify::FailureKind::BadRecordHash,
+        falsegreen_ledger::verify::FailureKind::BrokenLink,
+        falsegreen_ledger::verify::FailureKind::BadMerkleRoot,
+        falsegreen_ledger::verify::FailureKind::BrokenRootLink,
     ];
-    const SIGNATURE: &[falsegreen_ledger_core::verify::FailureKind] = &[
-        falsegreen_ledger_core::verify::FailureKind::BadSignature,
-        falsegreen_ledger_core::verify::FailureKind::BadSealCount,
+    const SIGNATURE: &[falsegreen_ledger::verify::FailureKind] = &[
+        falsegreen_ledger::verify::FailureKind::BadSignature,
+        falsegreen_ledger::verify::FailureKind::BadSealCount,
     ];
-    const GAP: &[falsegreen_ledger_core::verify::FailureKind] =
-        &[falsegreen_ledger_core::verify::FailureKind::SequenceGap];
-    const POLICY: &[falsegreen_ledger_core::verify::FailureKind] =
-        &[falsegreen_ledger_core::verify::FailureKind::PolicyViolation];
+    const GAP: &[falsegreen_ledger::verify::FailureKind] =
+        &[falsegreen_ledger::verify::FailureKind::SequenceGap];
+    const POLICY: &[falsegreen_ledger::verify::FailureKind] =
+        &[falsegreen_ledger::verify::FailureKind::PolicyViolation];
     let code = if has(CORRUPT) {
         5
     } else if has(GAP) {

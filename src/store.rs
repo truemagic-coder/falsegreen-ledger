@@ -133,7 +133,7 @@ impl Ledger {
     }
 
     pub fn shard_path(&self, index: u32) -> PathBuf {
-        self.root.join(ledger_rules::shard_name(index))
+        self.root.join(crate::rules::shard_name(index))
     }
 
     /// Shard indices present on disk, ascending.
@@ -141,7 +141,7 @@ impl Ledger {
         let mut out = Vec::new();
         for entry in fs::read_dir(&self.root)? {
             let name = entry?.file_name().to_string_lossy().to_string();
-            if let Some(index) = ledger_rules::shard_index(&name) {
+            if let Some(index) = crate::rules::shard_index(&name) {
                 out.push(index);
             }
         }

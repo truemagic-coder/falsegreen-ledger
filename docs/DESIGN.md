@@ -1,6 +1,6 @@
 # falsegreen-ledger — design
 
-The integrity design of `falsegreen-ledger-core`: the canonical form, the
+The integrity design of `falsegreen-ledger`: the canonical form, the
 hash chain, the shard store, the Merkle seal, policy evaluation,
 compaction, and the verification report. Every statement below is the
 implemented behavior; the test suite pins it.

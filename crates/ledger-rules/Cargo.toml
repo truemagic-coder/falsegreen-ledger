@@ -1,8 +1,0 @@
-[package]
-name = "ledger-rules"
-version = "0.1.0"
-edition = "2021"
-license = "MIT"
-description = "The ledger's pure decision rules, extracted so the proof ladder L1 (Kani) can prove the SHIPPED code (a Kani harness compiles as its own crate root: no external deps in scope)"
-
-[dependencies]
