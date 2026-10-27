@@ -216,3 +216,24 @@ and a known public key:**
   cannot detect a false event written by the logging process itself.
 - **Policy** — policy checks are evaluated at verify time against the
   given policy; the policy file is not part of the signed boundary.
+
+## 11. Formal proofs
+
+The chain-link rule is carried by two frozen formal encodings, listed as
+one `[[invariant]]` in `falsegreen.toml` and discharged by external
+toolchains (never by this program):
+
+- **Kani** (bounded, over the SHIPPED code): `proofs/links_kani.rs`
+  includes `src/rules.rs` by path, so what is model-checked is byte-for
+  byte what the binary runs, over the full u64 domain.
+- **Creusot** (unbounded, over the guarded specification):
+  `src/spec.rs` states the same sentence in Pearlite
+  (`#[requires]`/`#[ensures]`), erased under a plain build. The proof
+  obligations cover both `rules::links` and `spec::links`.
+
+Proof-build plumbing: the application modules and the CLI stub out under
+`--cfg creusot` (`cargo creusot` type-checks every target, and the
+storage/IO machinery has no spec — see the gating comments in `src/lib.rs`
+and `src/main.rs`). `why3find.json` is the Why3 project configuration the
+proof runner reads (it imports the `creusot` Why3 package and sets search
+budgets; the frozen contract passes its own budget flags on top).

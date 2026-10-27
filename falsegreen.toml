@@ -65,10 +65,12 @@ plan_refs = ["proof.kani", "proof.creusot"]
 kani = "proofs/links_kani.rs"
 
 [invariant.creusot]
-# The target is why3find's artifact path for the spec item (measured:
-# `cargo creusot` translates the whole crate, so the rlib is named for
-# the package and the item path names the module).
-targets = ["verif/falsegreen_ledger_rlib/links"]
+# One bare item pattern, measured in the job image: why3find matches it
+# against the translated sessions by item name, so `links` covers BOTH
+# formal encodings of this claim — the shipped rule in src/rules.rs (its
+# u64-addition safety obligation closes on the guard in the code) and the
+# guarded specification in src/spec.rs: four obligations, all closed.
+targets = ["links"]
 mode = "prove"
 provers = ["alt-ergo", "z3"]
 timeout_ms = 30000
