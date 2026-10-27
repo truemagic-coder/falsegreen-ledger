@@ -90,7 +90,7 @@ file *and* its seal with a matching re-signed pair (requires the private
 key), an all-shards rewrite by someone with write access to every shard
 before any external party anchors a seal (publish a seal — e.g. in a CI
 report or an external log — to fix that window), or loss of shards. The
-full threat model is in [`docs/DESIGN.md`](docs/DESIGN.md).
+full threat model is in [`docs/DESIGN.md`](DESIGN.md).
 
 ## Design
 
