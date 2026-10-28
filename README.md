@@ -16,12 +16,12 @@ one claim — chain linking is exact successor arithmetic that never wraps
 at the u64 ceiling — proven twice by machines over encodings that live in
 this repo (a bounded Kani model check over the shipped `src/rules.rs`,
 and an unbounded Creusot/Why3 proof of the guarded Pearlite spec in
-`src/spec.rs`). Accepted on the first attempt in 72 s; the signed report
+`src/spec.rs`). Accepted on the first attempt in 93.5 s; the signed report
 verifies offline, no account or network needed:
 
-- Human report: <https://falsegreen.com/report/301e97ff-620a-43c5-981c-57cf719b8c5d>
+- Human report: <https://falsegreen.com/report/645a6360-4a48-4323-9cc6-aaf06d4a706f>
 - Signed JSON + PDF in this repo: `reports/`
-- Offline check: `falsegreen verify-report reports/301e97ff-620a-43c5-981c-57cf719b8c5d.json`
+- Offline check: `falsegreen verify-report reports/645a6360-4a48-4323-9cc6-aaf06d4a706f.json`
 
 ## Build
 
