@@ -22,6 +22,10 @@ ed25519-dalek = { version = "2", features = ["rand_core"] }
 clap = { version = "4", features = ["derive"] }
 creusot-std = "0.14.0"
 rand = "0.8"
+# Deliberately pinned to a version with a CRITICAL advisory (GHSA-43w2-9j62-hq99,
+# fixed in 1.6.1). This branch exists to demonstrate the security gate: every
+# criterion stays green, the dependency-scan class is demonstrably violated.
+smallvec = "=1.6.0"
 
 [dev-dependencies]
 rand = "0.8"
